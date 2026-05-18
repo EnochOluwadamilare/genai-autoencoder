@@ -1,0 +1,180 @@
+.homeContainer {
+    min-height: 100vh;
+    width: 100%;
+
+    background: white;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    padding: 2rem;
+    box-sizing: border-box;
+
+    position: relative;
+}
+
+.lang {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.heroSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 4rem;
+
+    width: 100%;
+    max-width: 1200px;
+}
+
+.logoSection {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    flex-shrink: 0;
+}
+
+.logo {
+    width: 220px;
+    height: auto;
+}
+
+.contentSection {
+    display: flex;
+    flex-direction: column;
+
+    gap: 1rem;
+
+    flex: 1;
+}
+
+.contentSection h1 {
+    margin: 0;
+
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    line-height: 1.05;
+}
+
+.contentSection h2 {
+    margin: 0;
+
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    font-weight: 400;
+
+    line-height: 1.5;
+}
+
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 1rem;
+}
+
+.intro {
+    margin-top: 1rem;
+
+    font-style: italic;
+    font-size: 1.1rem;
+}
+
+.sessionArea {
+    display: flex;
+    align-items: center;
+
+    gap: 2rem;
+
+    margin-top: 1rem;
+
+    flex-wrap: wrap;
+}
+
+.joinSection {
+    display: flex;
+    flex-direction: column;
+
+    gap: 1rem;
+
+    width: 280px;
+}
+
+.or {
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.createButton {
+    min-width: 240px;
+    height: 56px;
+}
+
+.textbox {
+    background: white;
+}
+
+/* TABLET */
+
+@media only screen and (max-width: 900px) {
+    .heroSection {
+        gap: 2rem;
+    }
+
+    .logo {
+        width: 180px;
+    }
+}
+
+/* MOBILE */
+
+@media only screen and (max-width: 768px) {
+    .homeContainer {
+        justify-content: flex-start;
+
+        padding-top: 6rem;
+    }
+
+    .heroSection {
+        flex-direction: column;
+
+        text-align: center;
+    }
+
+    .contentSection {
+        align-items: center;
+    }
+
+    .buttons {
+        justify-content: center;
+    }
+
+    .sessionArea {
+        flex-direction: column;
+
+        width: 100%;
+    }
+
+    .joinSection {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .createButton {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .or {
+        margin: 0.5rem 0;
+    }
+
+    .logo {
+        width: 140px;
+    }
+}
