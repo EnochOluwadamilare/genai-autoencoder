@@ -1,0 +1,23 @@
+.claritySection {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.stars {
+    color: #f7c948;
+    font-size: 1.5rem;
+}
+
+/* Color for active filled stars */
+.starFilled {
+    color: #f7c948; /* A nice crisp amber/gold color */
+}
+
+
+.statusText {
+    color: #008298;
+    font-style: italic;
+}
