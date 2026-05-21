@@ -1,0 +1,21 @@
+.progressSection {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.progressBar {
+    width: 220px;
+    height: 20px;
+    border-radius: 999px;
+    border: 2px solid #008298;
+    overflow: hidden;
+    background: white;
+}
+
+.progressFill {
+    height: 100%;
+    background: black;
+    /* Optional: Makes the fill slide smoothly when values update */
+    transition: width 0.4s ease-out; 
+}
