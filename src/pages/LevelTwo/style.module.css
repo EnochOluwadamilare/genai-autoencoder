@@ -1,0 +1,269 @@
+.levelContainer {
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
+    background: #f4f4f4;
+}
+
+.topBar {
+    height: 84px;
+    background: #444;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    color: white;
+}
+
+.topLeft {
+    width: 80px;
+
+    display: flex;
+    justify-content: center;
+}
+
+.allButton {
+    min-width: 240px;
+    height: 56px;
+}
+
+.smallLogo {
+    width: 56px;
+    height: 56px;
+}
+
+.topCenter {
+    font-size: clamp(1.5rem, 3vw, 3rem);
+    font-weight: bold;
+
+    text-align: center;
+
+    flex: 1;
+}
+
+.topRight {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.settingsIcon {
+    font-size: 2rem !important;
+}
+
+.levelIntro {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    text-align: center;
+
+    padding: 1rem 1rem 1rem;
+
+    gap: 0.5rem;
+}
+
+.goalText {
+    color: #008298;
+    font-weight: bold;
+}
+
+.claritySection {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    flex-wrap: wrap;
+
+    justify-content: center;
+}
+
+
+.gameArea {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    gap: 2rem;
+
+    padding: 0.5rem 2rem;
+
+    flex-wrap: wrap;
+}
+
+.panelColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 0.2rem;
+}
+
+h3 {
+    margin: 5px;
+}
+
+.canvasPanel,
+.outputPanel {
+    width: 420px;
+    height: 420px;
+
+    border: 4px solid #008298;
+    border-radius: 8px;
+
+    background-image:
+        linear-gradient(45deg, #ececec 25%, transparent 25%),
+        linear-gradient(-45deg, #ececec 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #ececec 75%),
+        linear-gradient(-45deg, transparent 75%, #ececec 75%);
+
+    background-size: 40px 40px;
+    background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+
+    position: relative;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.badge {
+    position: absolute;
+
+    left: 16px;
+    bottom: 16px;
+
+    width: 54px;
+    height: 54px;
+
+    border-radius: 999px;
+
+    background: #f7c948;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-weight: bold;
+    font-size: 1.5rem;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.latentColumn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 1rem;
+}
+
+.encoderBadge {
+    display: flex;
+    align-items: center;
+
+    background: #de0de6;
+
+    border-radius: 999px;
+
+    padding: 0.5rem;
+}
+
+.yellowBadge,
+.orangeBadge {
+    width: 54px;
+    height: 54px;
+
+    border-radius: 999px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.yellowBadge {
+    background: #f7c948;
+}
+
+.orangeBadge {
+    background: #ff5c35;
+    color: white;
+}
+
+.latentImage {
+    width: 320px;
+    max-width: 100%;
+}
+
+.outputImage {
+    width: 70%;
+    height: auto;
+}
+
+.bottomActions {
+    display: flex;
+    justify-content: center;
+
+    gap: 2rem;
+
+    padding: 0.5rem 2rem;
+
+    flex-wrap: wrap;
+}
+
+/* TABLET */
+
+@media only screen and (max-width: 1100px) {
+    .gameArea {
+        flex-direction: column;
+    }
+
+    .canvasPanel,
+    .outputPanel {
+        width: 340px;
+        height: 340px;
+    }
+}
+
+/* MOBILE */
+
+@media only screen and (max-width: 768px) {
+    .topBar {
+        flex-wrap: wrap;
+        height: auto;
+
+        gap: 1rem;
+
+        padding: 1rem;
+    }
+
+    .topCenter {
+        width: 100%;
+        order: 3;
+    }
+
+    .canvasPanel,
+    .outputPanel {
+        width: 92vw;
+        height: 92vw;
+    }
+
+    .latentImage {
+        width: 220px;
+    }
+
+    .bottomActions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .allButton {
+        width: 100%;
+        max-width: 320px;
+    }
+}
