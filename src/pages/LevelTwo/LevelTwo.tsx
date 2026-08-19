@@ -78,7 +78,7 @@ function LevelTwo() {
 
     return <div>
         {/* NAV BAR */}
-        <AppBar onSave={null}></AppBar>
+        <AppBar onSave={() => {}}></AppBar>
 
         {/* TITLE AREA */}
         <section className={style.levelIntro}>
@@ -86,8 +86,7 @@ function LevelTwo() {
             <p>
                 <span className={style.goalText}>Goal:</span>
                 {' '}
-                Can you guess what the AI learned?
-                Adjust the Input until the Output picture makes sense.
+                Now can you tweak the Latent Space to see what shapes or numbers the AI has learned, and how it affects the output?<br/>Adjust the Latent space until the Decoder picture makes sense.
             </p>
             <ClarityDisplay score={aiClarityScore} />
             {/* <PercentageBar colour={'blue'} value={26}></PercentageBar> */}
@@ -99,8 +98,7 @@ function LevelTwo() {
             {/* INPUT */}
             <div className={style.panelColumn}>
                 <h3>Input</h3>
-                <PixelCanvas onChange={handleInputCanvasEdit} rows={12} cols={12} cellSize={30} />
-                {/* <div className={style.canvasPanel}></div> */}
+                <PixelCanvas onChange={handleInputCanvasEdit} rows={32} cols={32} cellSize={12} />
             </div>
 
             {/* LATENT */}
@@ -111,14 +109,7 @@ function LevelTwo() {
             {/* OUTPUT */}
             <div className={style.panelColumn}>
                 <h3>Output</h3>
-                <PixelCanvas rows={12} cols={12} cellSize={30} />
-                {/* <div className={style.outputPanel}>
-                    <img
-                        src="/placeholder-image.png"
-                        alt="output"
-                        className={style.outputImage}
-                    />
-                </div> */}
+                <PixelCanvas rows={32} cols={32} cellSize={12} readOnly/>
             </div>
         </section>
 
@@ -143,7 +134,7 @@ function LevelTwo() {
             <Button
                 variant="outlined"
                 style={{color:"#008298", borderColor: "#008298"}}
-                onClick={() => navigate('/level-2')}>
+                onClick={() => navigate('/level-3')}>
                 Submit
             </Button>
         </section>
