@@ -1,18 +1,24 @@
 import { Stage, Layer, Rect } from 'react-konva';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import style from './style.module.css';
 
 type PixelCanvasProps = {
     rows?: number;
     cols?: number;
     cellSize?: number;
-    onChange?: () => void;
+    grid?: number[][];
+    initialGrid?: number[][];
+    readOnly?: boolean;
+    onChange?: (grid: number[][]) => void;
 };
 
 function PixelCanvas({
     rows = 8,
     cols = 8,
     cellSize = 50,
+    grid: externalGrid,
+    initialGrid,
+    readOnly = false,
     onChange,
 }: PixelCanvasProps) {
 
@@ -22,7 +28,13 @@ function PixelCanvas({
             .fill(0)
             .map(() => Array(cols).fill(0));
 
-    const [grid, setGrid] = useState<number[][]>(createGrid());
+    const [grid, setGrid] = useState<number[][]>(() => initialGrid ?? createGrid());
+
+    useEffect(() => {
+        if (externalGrid) {
+            setGrid(externalGrid.map((row) => [...row]));
+        }
+    }, [externalGrid]);
 
     const [hovered, setHovered] = useState<{
         row: number;
@@ -39,14 +51,14 @@ function PixelCanvas({
         value: number
     ) => {
 
-        const newGrid = grid.map(r => [...r]);
+        const newGrid = grid.map((r) => [...r]);
 
         newGrid[row][col] = value;
 
         setGrid(newGrid);
 
         if (onChange) {
-            onChange();
+            onChange(newGrid);
         }
     };
 
@@ -56,11 +68,11 @@ function PixelCanvas({
                 width={cols * cellSize}
                 height={rows * cellSize}
 
-                onMouseDown={() => setIsDrawing(true)}
+                onMouseDown={() => !readOnly && setIsDrawing(true)}
                 onMouseUp={() => setIsDrawing(false)}
                 onMouseLeave={() => setIsDrawing(false)}
 
-                onTouchStart={() => setIsDrawing(true)}
+                onTouchStart={() => !readOnly && setIsDrawing(true)}
                 onTouchEnd={() => setIsDrawing(false)}
             >
                 <Layer>
@@ -79,8 +91,8 @@ function PixelCanvas({
                                     width={cellSize}
                                     height={cellSize}
                                     fill={
-                                        cell === 1
-                                            ? '#000000'
+                                        typeof cell === 'number' && cell > 0
+                                            ? `rgba(0,0,0,${Math.max(0, Math.min(1, cell))})`
                                             : isHovered
                                                 ? '#d9eef2'
                                                 : '#e9eef1'
@@ -89,6 +101,8 @@ function PixelCanvas({
                                     strokeWidth={1}
 
                                     onMouseDown={() => {
+                                        if (readOnly) return;
+
                                         const value =
                                             grid[rowIndex][colIndex] === 1 ? 0 : 1;
 
@@ -108,7 +122,7 @@ function PixelCanvas({
                                             col: colIndex,
                                         });
 
-                                        if (isDrawing) {
+                                        if (isDrawing && !readOnly) {
                                             paintCell(
                                                 rowIndex,
                                                 colIndex,
@@ -118,6 +132,8 @@ function PixelCanvas({
                                     }}
 
                                     onTouchStart={() => {
+                                        if (readOnly) return;
+
                                         const value =
                                             grid[rowIndex][colIndex] === 1 ? 0 : 1;
 
@@ -131,7 +147,7 @@ function PixelCanvas({
                                     }}
 
                                     onTouchMove={() => {
-                                        if (isDrawing) {
+                                        if (isDrawing && !readOnly) {
                                             paintCell(
                                                 rowIndex,
                                                 colIndex,
@@ -143,6 +159,7 @@ function PixelCanvas({
                                     onMouseLeave={() =>
                                         setHovered(null)
                                     }
+                                    listening={!readOnly}
                                 />
                             );
                         })
