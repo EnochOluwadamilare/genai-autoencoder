@@ -110,14 +110,7 @@ function LevelThree() {
             {/* OUTPUT */}
             <div className={style.panelColumn}>
                 <h3>Output</h3>
-                <PixelCanvas rows={1} cols={1} cellSize={384} />
-                {/* <div className={style.outputPanel}>
-                    <img
-                        src="/placeholder-image.png"
-                        alt="output"
-                        className={style.outputImage}
-                    />
-                </div> */}
+                <PixelCanvas rows={32} cols={32} cellSize={12} readOnly />
             </div>
         </section>
 
