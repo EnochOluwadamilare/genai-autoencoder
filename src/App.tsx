@@ -4,11 +4,13 @@ import Home from "./pages/Home/Home";
 import About from "./pages/About/About";
 import LevelOne from "./pages/LevelOne/LevelOne";
 import LevelTwo from "./pages/LevelTwo/LevelTwo";
+import LevelThree from './pages/LevelThree/LevelThree';
 
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import heroImg from './assets/hero.png'
 import './App.css'
+
 
 function App() {
 
@@ -19,6 +21,7 @@ function App() {
         <Route path="/about" element={<About />} />
         <Route path="/level-1" element={<LevelOne />} />
         <Route path="/level-2" element={<LevelTwo />} />
+        <Route path="/level-3" element={<LevelThree />} />
       </Routes>
     </BrowserRouter>
   )
