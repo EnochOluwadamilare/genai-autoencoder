@@ -77,7 +77,7 @@ function LevelOne() {
 
     return <div>
         {/* NAV BAR */}
-        <AppBar onSave={null}></AppBar>
+        <AppBar onSave={() => {}}></AppBar>
 
         {/* TITLE AREA */}
         <section className={style.levelIntro}>
@@ -98,7 +98,7 @@ function LevelOne() {
             {/* INPUT */}
             <div className={style.panelColumn}>
                 <h3>Input</h3>
-                <PixelCanvas onChange={handleInputCanvasEdit} rows={12} cols={12} cellSize={30} />
+                <PixelCanvas onChange={handleInputCanvasEdit} rows={32} cols={32} cellSize={12} />
                 {/* <div className={style.canvasPanel}></div> */}
             </div>
 
@@ -110,7 +110,7 @@ function LevelOne() {
             {/* OUTPUT */}
             <div className={style.panelColumn}>
                 <h3>Output</h3>
-                <PixelCanvas rows={12} cols={12} cellSize={30} />
+                <PixelCanvas rows={32} cols={32} cellSize={12} readOnly/>
                 {/* <div className={style.outputPanel}>
                     <img
                         src="/placeholder-image.png"
