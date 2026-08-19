@@ -12,20 +12,20 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@genai-fi/base": "^5.0.7",
-    "@mui/icons-material": "^9.0.1",
-    "@mui/material": "^9.0.1",
-    "@mui/x-charts": "^9.1.0",
+    "@genai-fi/base": "^5.2.2",
+    "@mui/icons-material": "^7.3.1",
+    "@mui/material": "^7.3.1",
+    "@mui/x-charts": "^8.27.0",
     "framer-motion": "^12.39.0",
     "i18next": "^26.1.0",
     "i18next-browser-languagedetector": "^8.2.1",
     "i18next-http-backend": "^4.0.0",
     "konva": "^10.3.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "react-i18next": "^17.0.7",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-i18next": "^15.5.1",
     "react-konva": "^19.2.4",
-    "react-router-dom": "^6.30.3"
+    "react-router-dom": "^7.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -37,7 +37,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
-    "typescript": "~6.0.2",
+    "typescript": "5.8.3",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12"
   }
