@@ -6,7 +6,7 @@ type PixelCanvasProps = {
     rows?: number;
     cols?: number;
     cellSize?: number;
-    grid?: number[][];
+    grid?: number[][] | null;
     initialGrid?: number[][];
     readOnly?: boolean;
     onChange?: (grid: number[][]) => void;
@@ -91,8 +91,8 @@ function PixelCanvas({
                                     width={cellSize}
                                     height={cellSize}
                                     fill={
-                                        typeof cell === 'number' && cell > 0
-                                            ? `rgba(0,0,0,${Math.max(0, Math.min(1, cell))})`
+                                        typeof cell === 'number' && cell > 0.05
+                                            ? `rgba(0,0,0,${Math.min(1, cell)})`
                                             : isHovered
                                                 ? '#d9eef2'
                                                 : '#e9eef1'
