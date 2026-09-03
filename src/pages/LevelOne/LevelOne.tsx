@@ -10,14 +10,17 @@ import PixelCanvas from '../../components/PixelCanvas/PixelCanvas';
 import { useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
-import { useVaeInference } from '../../hooks/useVaeInference';
+import { useVaeInferenceAlpha, type ClarityMetrics } from '../../hooks/useVaeInference';
+import { ClarityProgressBar } from '../../components/ClarityDisplay/ClarityProgressBar';
 
 function LevelOne() {
     const { t } = useTranslation('image_adv');
     const navigate = useNavigate();
     const [aiClarityScore, setAiClarityScore] = useState<number>(3.4);
-    const [progressScore, setProgressScore] = useState<number>(40.4);
+    // const [progressScore, setProgressScore] = useState<number>(40.4);
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
+    const [metrics, setMetrics] = useState<ClarityMetrics | null>(null);
+    // const [clarityMetrics, setClarityMetrics] = useState<ClarityMetrics | null>(null);
 
     // Star bias strength (0.0 = no bias, 0.4 = subtle starish features, 1.0 = star)
     const [starBiasAlpha] = useState<number>(0.4);
@@ -27,7 +30,7 @@ function LevelOne() {
     const [outputGridData, setOutputGridData] = useState<number[][] | null>(null);
 
     // Initialize ONNX inference hook
-    const { runInferenceWithBias, isLoaded } = useVaeInference();
+    const { runInferenceWithBias, isLoaded } = useVaeInferenceAlpha();
 
     // Refs for active animation timers
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -71,7 +74,8 @@ function LevelOne() {
             if (latestInputData && isLoaded) {
                 const reconstructedResult = await runInferenceWithBias(latestInputData, starBiasAlpha);
                 if (reconstructedResult) {
-                    setOutputGridData(reconstructedResult);
+                    setOutputGridData(reconstructedResult.outputMatrix);
+                    setMetrics(reconstructedResult.metrics);
                 }
             }
         }, 1700);
@@ -101,8 +105,9 @@ function LevelOne() {
                     Can you guess what the AI learned?
                     Adjust the Input until the Output picture makes sense.
                 </p>
-                <ClarityDisplay score={aiClarityScore} />
-                <ProgressBar value={progressScore} showPercentage={false} />
+                {/* <ClarityProgressBar metrics={clarityMetrics} /> */}
+                <ClarityDisplay metrics={metrics} />
+                <ProgressBar value={metrics?.clarityPercentage ?? 0} showPercentage={false} />
             </section>
 
             {/* GAME AREA */}
@@ -125,7 +130,7 @@ function LevelOne() {
 
                 {/* OUTPUT */}
                 <div className={style.panelColumn}>
-                    <h3>Output {isLoaded ? '⚡' : '(Loading Models...)'}</h3>
+                    <h3>Output {isLoaded ? ' ' : '(Loading Models...)'}</h3>
                     <PixelCanvas 
                         rows={32} 
                         cols={32} 

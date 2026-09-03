@@ -1,145 +1,203 @@
-import { LangSelect, PercentageBar } from '@genai-fi/base';
-import { Button } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
+import { Button, Slider, Typography, Box } from '@mui/material';
 import style from './style.module.css';
 import AppBar from '../../components/AppBar';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { color } from 'framer-motion';
-import {LatentSpaceSVG, type VAEStage} from "../../components/LatentSpace/LatentSpaceSVG";
+import { LatentSpaceSVG, type VAEStage } from "../../components/LatentSpace/LatentSpaceSVG";
 import PixelCanvas from '../../components/PixelCanvas/PixelCanvas';
 import { useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
-import { LatentSpaceSVGWC } from '../../components/LatentSpace/LatentSpaceSVGWC';
+import { useVaeInferenceAlpha, type ClarityMetrics } from '../../hooks/useVaeInference';
 
 function LevelThree() {
     const { t } = useTranslation('image_adv');
     const navigate = useNavigate();
+    
+    // UI Game score states
     const [aiClarityScore, setAiClarityScore] = useState<number>(3.4);
     const [progressScore, setProgressScore] = useState<number>(40.4);
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
-    // Create refs to keep track of our active timers
+    const [metrics, setMetrics] = useState<ClarityMetrics | null>(null);
+
+    // Strategy 3: Interactive UI Bias Scale (1.0 = Default Auto-Adaptive, 0.0 - 2.0 multiplier)
+    const [biasUserScale, setBiasUserScale] = useState<number>(1.0);
+    const [activeAlpha, setActiveAlpha] = useState<number>(0.0);
+
+    // Canvas matrix states
+    const [inputGridData, setInputGridData] = useState<number[][] | null>(null);
+    const [outputGridData, setOutputGridData] = useState<number[][] | null>(null);
+
+    // ONNX Inference Hook
+    const { runInferenceWithBias, isLoaded } = useVaeInferenceAlpha();
+
+    // Timer refs
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const timelineTimersRef = useRef<NodeJS.Timeout[]>([]);
-    // Clear any running animation timeline timers
+
     const clearActiveTimeline = () => {
         timelineTimersRef.current.forEach((timer) => clearTimeout(timer));
         timelineTimersRef.current = [];
     };
 
-    // This function gets called EVERY time the user draws/edits your input canvas
-    const handleInputCanvasEdit = () => {
-        // 1. Instantly reset everything back to "resting" if an animation was playing
+    // Called when user edits input canvas or adjusts bias slider
+    const handleInputCanvasEdit = (gridMatrix?: number[][], newScale?: number) => {
+        const matrixToUse = gridMatrix || inputGridData;
+        const scaleToUse = newScale !== undefined ? newScale : biasUserScale;
+
+        if (gridMatrix) setInputGridData(gridMatrix);
+
         setCurrentStage("resting");
         clearActiveTimeline();
 
-        // 2. Clear the previous 2-second countdown timer (The Debounce)
         if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+            clearTimeout(debounceTimerRef.current);
         }
 
-        // 3. Start a fresh 2-second countdown
         debounceTimerRef.current = setTimeout(() => {
-            //Run the VAE model
-            runAnimationOrchestration();
-        }, 1000); // 2000 milliseconds = 2 seconds of zero user interaction
+            runAnimationOrchestration(matrixToUse, scaleToUse);
+        }, 800);
     };
 
-    // Runs the complete step-by-step VAE animation from start to finish
-    const runAnimationOrchestration = () => {
-        // Stage A: Move to inputting highlighting mode
+    // Orchestrates LatentSpaceSVG animation sequence and runs model
+    const runAnimationOrchestration = async (latestInputData: number[][] | null, scale: number) => {
         setCurrentStage("inputting");
 
-        // Stage B: Fly left shapes into the center box (Compression)
         const timer1 = setTimeout(() => {
-        setCurrentStage("compressing");
-        }, 500); // Wait briefly after highlight before flying inward
+            setCurrentStage("compressing");
+        }, 500);
 
-        // Stage C: The bottleneck cube pulses (Thinking)
-        const timer2 = setTimeout(() => {
-        setCurrentStage("thinking");
-        }, 1700); // 500ms + 1200ms compression animation duration
+        const timer2 = setTimeout(async () => {
+            setCurrentStage("thinking");
 
-        // Stage D: Reconstruct shapes out to the right side (Decoder)
+            if (latestInputData && isLoaded) {
+                const res = await runInferenceWithBias(latestInputData, scale);
+                if (res) {
+                    setOutputGridData(res.outputMatrix);
+                    setActiveAlpha(res.computedAlpha);
+                    
+                    // Update Clarity Score based on active alpha alignment
+                    const clarity = Math.min(5.0, Number((2.5 + res.computedAlpha * 1.1).toFixed(1)));
+                    setAiClarityScore(clarity);
+                }
+            }
+        }, 1700);
+
         const timer3 = setTimeout(() => {
-        setCurrentStage("reconstructing");
-        }, 3300); // 1700ms + 800ms thinking pulse duration
+            setCurrentStage("reconstructing");
+        }, 3300);
 
-        // Stage E: Safely return back to resting state
         const timer4 = setTimeout(() => {
-        setCurrentStage("resting");
-        // Optional: This is where you reveal your actual output canvas artwork!
-        }, 4300); // 2500ms + 1000ms reconstruction duration + slight buffer
+            setCurrentStage("resting");
+        }, 4300);
 
-        // Keep track of timers so we can instantly kill them if the user edits the canvas mid-flight
         timelineTimersRef.current = [timer1, timer2, timer3, timer4];
     };
 
-    return <div>
-        {/* NAV BAR */}
-        <AppBar onSave={() => {}}></AppBar>
+    return (
+        <div>
+            {/* NAV BAR */}
+            <AppBar onSave={() => {}} />
 
-        {/* TITLE AREA */}
-        <section className={style.levelIntro}>
-            <h2>Level 3</h2>
-            <p>
-                <span className={style.goalText}>Goal:</span>
-                {' '}
-                Now can you draw on the Encoder until the Latent Vector gives 0,0,1 in the Latent Space.
-            </p>
-            <ClarityDisplay score={aiClarityScore} />
-            {/* <PercentageBar colour={'blue'} value={26}></PercentageBar> */}
-            <ProgressBar value={progressScore} showPercentage={false}/>
-        </section>
+            {/* TITLE AREA */}
+            <section className={style.levelIntro}>
+                <h2>Level 3</h2>
+                <p>
+                    <span className={style.goalText}>Goal:</span>
+                    {' '}
+                    Can you guess what the AI learned?
+                    Adjust the Input or Bias intensity until the Output picture morphs.
+                </p>
+                <ClarityDisplay metrics={metrics} />
+                <ProgressBar value={metrics?.clarityPercentage ?? 0} showPercentage={false} />
+            </section>
 
-        {/* GAME AREA */}
-        <section className={style.gameArea}>
-            {/* INPUT */}
-            <div className={style.panelColumn}>
-                <h3>Input</h3>
-                <PixelCanvas onChange={handleInputCanvasEdit} rows={32} cols={32} cellSize={12} />
-                {/* <div className={style.canvasPanel}></div> */}
-            </div>
+            {/* GAME AREA */}
+            <section className={style.gameArea}>
+                {/* INPUT CANVAS */}
+                <div className={style.panelColumn}>
+                    <h3>Input</h3>
+                    <PixelCanvas 
+                        onChange={(matrix) => handleInputCanvasEdit(matrix, biasUserScale)} 
+                        rows={32} 
+                        cols={32} 
+                        cellSize={12} 
+                    />
+                </div>
 
-            {/* LATENT */}
-            <div className={style.latentColumn}>
-                <LatentSpaceSVGWC stage={currentStage}></LatentSpaceSVGWC>
-            </div>
+                {/* LATENT SPACE SVG */}
+                <div className={style.latentColumn}>
+                    <LatentSpaceSVG stage={currentStage} />
+                    
+                    {/* Strategy 3: Dynamic Alpha & Interactive Slider Controls */}
+                    <Box sx={{ width: '80%', margin: '12px auto', textAlign: 'center' }}>
+                        <Typography variant="caption" sx={{ color: '#008298', fontWeight: 'bold' }}>
+                            AI Bias Intensity (α): {activeAlpha.toFixed(2)}
+                        </Typography>
+                        <Slider
+                            value={biasUserScale}
+                            min={0.0}
+                            max={2.0}
+                            step={0.1}
+                            onChange={(_, val) => {
+                                const newScale = val as number;
+                                setBiasUserScale(newScale);
+                                handleInputCanvasEdit(inputGridData || undefined, newScale);
+                            }}
+                            sx={{ color: '#008298' }}
+                        />
+                    </Box>
+                </div>
 
-            {/* OUTPUT */}
-            <div className={style.panelColumn}>
-                <h3>Output</h3>
-                <PixelCanvas rows={32} cols={32} cellSize={12} readOnly />
-            </div>
-        </section>
+                {/* OUTPUT CANVAS */}
+                <div className={style.panelColumn}>
+                    <h3>Output {isLoaded ? '⚡' : '(Loading Models...)'}</h3>
+                    <PixelCanvas 
+                        rows={32} 
+                        cols={32} 
+                        cellSize={12} 
+                        readOnly 
+                        grid={outputGridData} 
+                    />
+                </div>
+            </section>
 
-        {/* ACTION BUTTONS */}
-        <section className={style.bottomActions}>
-            <Button
-                variant="outlined"
-                onClick={() => navigate('/level-2')}
-                style={{color:"#008298", borderColor: "#008298"}}
-            >
-                {t('home.actions.reset')}
-            </Button>
-
-            <Button
-                variant="outlined"
-                style={{color:"#008298", borderColor: "#008298"}}
-                // onClick={runSimulation}
+            {/* ACTION BUTTONS */}
+            <section className={style.bottomActions}>
+                <Button
+                    variant="outlined"
+                    onClick={() => {
+                        setBiasUserScale(1.0);
+                        navigate('/level-2');
+                    }}
+                    style={{ color: "#008298", borderColor: "#008298" }}
                 >
-                Hint 👁️
-            </Button>
+                    {t('home.actions.reset')}
+                </Button>
 
-            <Button
-                variant="outlined"
-                style={{color:"#008298", borderColor: "#008298"}}
-                onClick={() => navigate('/level-4')}>
-                Submit
-            </Button>
-        </section>
-    </div>;
+                <Button
+                    variant="outlined"
+                    style={{ color: "#008298", borderColor: "#008298" }}
+                    onClick={() => {
+                        // Boost scale for curved/stubborn shapes as a hint
+                        const boostedScale = 1.5;
+                        setBiasUserScale(boostedScale);
+                        handleInputCanvasEdit(inputGridData || undefined, boostedScale);
+                    }}
+                >
+                    Hint 👁️
+                </Button>
+
+                <Button
+                    variant="outlined"
+                    style={{ color: "#008298", borderColor: "#008298" }}
+                    onClick={() => navigate('/level-4')}
+                >
+                    Submit
+                </Button>
+            </section>
+        </div>
+    );
 }
 
 export default LevelThree;

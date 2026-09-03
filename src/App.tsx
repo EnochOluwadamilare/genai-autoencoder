@@ -4,7 +4,8 @@ import Home from "./pages/Home/Home";
 import About from "./pages/About/About";
 import LevelOne from "./pages/LevelOne/LevelOne";
 import LevelTwo from "./pages/LevelTwo/LevelTwo";
-import LevelThree from './pages/LevelThree/LevelThree';
+import LevelThree from "./pages/LevelThree/LevelThree";
+import LevelFour from './pages/LevelFour/LevelFour';
 
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
@@ -22,6 +23,7 @@ function App() {
         <Route path="/level-1" element={<LevelOne />} />
         <Route path="/level-2" element={<LevelTwo />} />
         <Route path="/level-3" element={<LevelThree />} />
+        <Route path="/level-4" element={<LevelFour />} />
       </Routes>
     </BrowserRouter>
   )

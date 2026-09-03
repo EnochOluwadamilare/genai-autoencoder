@@ -202,22 +202,27 @@ h3 {
         gap: 1rem;
         padding: 1rem;
     }
+
     .topCenter {
         width: 100%;
         order: 3;
     }
+
     .canvasPanel,
     .outputPanel {
         width: 92vw;
         height: 92vw;
     }
+
     .latentImage {
         width: 220px;
     }
+
     .bottomActions {
         flex-direction: column;
         align-items: center;
     }
+
     .allButton {
         width: 100%;
         max-width: 320px;

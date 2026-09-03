@@ -12,6 +12,7 @@ import { useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { LatentSpaceSVGWC } from '../../components/LatentSpace/LatentSpaceSVGWC';
+import type { ClarityMetrics } from '../../hooks/useVaeInference';
 
 function LevelTwo() {
     const { t } = useTranslation('image_adv');
@@ -19,6 +20,8 @@ function LevelTwo() {
     const [aiClarityScore, setAiClarityScore] = useState<number>(3.4);
     const [progressScore, setProgressScore] = useState<number>(40.4);
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
+    const [metrics, setMetrics] = useState<ClarityMetrics | null>(null);
+    
     // Create refs to keep track of our active timers
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const timelineTimersRef = useRef<NodeJS.Timeout[]>([]);
@@ -88,7 +91,7 @@ function LevelTwo() {
                 {' '}
                 Now can you tweak the Latent Space to see what shapes or numbers the AI has learned, and how it affects the output?<br/>Adjust the Latent space until the Decoder picture makes sense.
             </p>
-            <ClarityDisplay score={aiClarityScore} />
+            <ClarityDisplay metrics={metrics} />
             {/* <PercentageBar colour={'blue'} value={26}></PercentageBar> */}
             <ProgressBar value={progressScore} showPercentage={false}/>
         </section>
