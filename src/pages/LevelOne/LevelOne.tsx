@@ -1,5 +1,5 @@
 import { LangSelect, PercentageBar } from '@genai-fi/base';
-import { Button } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import SettingsIcon from '@mui/icons-material/Settings';
 import style from './style.module.css';
 import AppBar from '../../components/AppBar';
@@ -11,15 +11,14 @@ import { useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { useVaeInferenceAlpha, type ClarityMetrics } from '../../hooks/useVaeInference';
-import { ClarityProgressBar } from '../../components/ClarityDisplay/ClarityProgressBar';
 
 function LevelOne() {
     const { t } = useTranslation('image_adv');
     const navigate = useNavigate();
-    const [aiClarityScore, setAiClarityScore] = useState<number>(3.4);
-    // const [progressScore, setProgressScore] = useState<number>(40.4);
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
     const [metrics, setMetrics] = useState<ClarityMetrics | null>(null);
+    const [showHint, setShowHint] = useState(false);
+    const [canvasKey, setCanvasKey] = useState(0);
     // const [clarityMetrics, setClarityMetrics] = useState<ClarityMetrics | null>(null);
 
     // Star bias strength (0.0 = no bias, 0.4 = subtle starish features, 1.0 = star)
@@ -28,6 +27,10 @@ function LevelOne() {
     // Grid data states for input and reconstructed output
     const [inputGridData, setInputGridData] = useState<number[][] | null>(null);
     const [outputGridData, setOutputGridData] = useState<number[][] | null>(null);
+
+    const clarityPercentage = metrics?.clarityPercentage ?? 0;
+    const progressPercentage = metrics?.progressPercentage ?? 0;
+    const canSubmit = clarityPercentage >= 75 && progressPercentage >= 75;
 
     // Initialize ONNX inference hook
     const { runInferenceWithBias, isLoaded } = useVaeInferenceAlpha();
@@ -39,6 +42,20 @@ function LevelOne() {
     const clearActiveTimeline = () => {
         timelineTimersRef.current.forEach((timer) => clearTimeout(timer));
         timelineTimersRef.current = [];
+    };
+
+    const handleReset = () => {
+        clearActiveTimeline();
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
+        }
+
+        setCurrentStage('resting');
+        setInputGridData(null);
+        setOutputGridData(null);
+        setMetrics(null);
+        setCanvasKey((prev) => prev + 1);
     };
 
     // Triggered when user draws on input canvas
@@ -107,7 +124,7 @@ function LevelOne() {
                 </p>
                 {/* <ClarityProgressBar metrics={clarityMetrics} /> */}
                 <ClarityDisplay metrics={metrics} />
-                <ProgressBar value={metrics?.progressPercentage ?? 0} showPercentage={false} />
+                <ProgressBar value={progressPercentage} showPercentage={false} />
             </section>
 
             {/* GAME AREA */}
@@ -116,6 +133,7 @@ function LevelOne() {
                 <div className={style.panelColumn}>
                     <h3>Input</h3>
                     <PixelCanvas 
+                        key={canvasKey}
                         onChange={(matrix) => handleInputCanvasEdit(matrix)} 
                         rows={32} 
                         cols={32} 
@@ -145,7 +163,7 @@ function LevelOne() {
             <section className={style.bottomActions}>
                 <Button
                     variant="outlined"
-                    onClick={() => navigate('/level-1')}
+                    onClick={handleReset}
                     style={{ color: "#008298", borderColor: "#008298" }}
                 >
                     {t('home.actions.reset')}
@@ -154,6 +172,7 @@ function LevelOne() {
                 <Button
                     variant="outlined"
                     style={{ color: "#008298", borderColor: "#008298" }}
+                    onClick={() => setShowHint(true)}
                 >
                     Hint 👁️
                 </Button>
@@ -162,10 +181,32 @@ function LevelOne() {
                     variant="outlined"
                     style={{ color: "#008298", borderColor: "#008298" }}
                     onClick={() => navigate('/level-2')}
+                    disabled={!canSubmit}
+                    sx={{
+                        opacity: canSubmit ? 1 : 0.5,
+                        '&.Mui-disabled': {
+                            borderColor: '#a7b7bc',
+                            color: '#6f7d85'
+                        }
+                    }}
                 >
                     Submit
                 </Button>
             </section>
+
+            <Dialog open={showHint} onClose={() => setShowHint(false)} aria-labelledby="level-1-hint-title">
+                <DialogTitle id="level-1-hint-title">Hint</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        {metrics?.hint ?? 'Start with simple sharp shapes like a Square, Box, Circle, or Plus (+) symbol!'}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setShowHint(false)} autoFocus>
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }
