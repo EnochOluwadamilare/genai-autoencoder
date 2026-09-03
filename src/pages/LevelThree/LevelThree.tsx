@@ -109,7 +109,7 @@ function LevelThree() {
                     Adjust the Input or Bias intensity until the Output picture morphs.
                 </p>
                 <ClarityDisplay metrics={metrics} />
-                <ProgressBar value={metrics?.clarityPercentage ?? 0} showPercentage={false} />
+                <ProgressBar value={metrics?.progressPercentage ?? 0} showPercentage={false} />
             </section>
 
             {/* GAME AREA */}

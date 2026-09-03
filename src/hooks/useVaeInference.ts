@@ -5,6 +5,7 @@ ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
 
 export interface ClarityMetrics {
   clarityPercentage: number; // 0 to 100
+  progressPercentage: number; // 0 to 100, separate from clarity
   starRating: number;        // 1 to 5 stars
   feedbackText: string;      // Dynamic feedback message
   hint: string;              // Shape hint for the user
@@ -41,77 +42,50 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
   return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
 export function calculateClarityMetrics(
   inputMatrix: number[][],
   muData: number[] | null,
   vStar: number[] | null
 ): ClarityMetrics {
   let activePixels = 0;
-  let minR = 32, maxR = -1, minC = 32, maxC = -1;
   const size = inputMatrix.length;
 
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
       if (inputMatrix[r][c] > 0.15) {
         activePixels++;
-        minR = Math.min(minR, r);
-        maxR = Math.max(maxR, r);
-        minC = Math.min(minC, c);
-        maxC = Math.max(maxC, c);
       }
     }
   }
 
   if (activePixels < 12 || !muData || !vStar) {
-    return getMetricResult(0);
+    return getMetricResult(0, 0);
   }
 
-  const width = maxC - minC + 1;
-  const height = maxR - minR + 1;
-  const boundingArea = width * height;
+  const similarity = cosineSimilarity(muData, vStar);
+  const normalizedSimilarity = clamp((similarity + 1) / 2, 0, 1);
+  const coverage = clamp(activePixels / 210, 0, 1);
 
-  // 1. Detect Outer Tip Extremes (Dynamic relative bounding instead of hardcoded coordinates)
-  let tipHits = 0;
-  const centerR = (minR + maxR) / 2;
-  const centerC = (minC + maxC) / 2;
+  const clarityPercentage = clamp(
+    Math.round((normalizedSimilarity * 0.8 + coverage * 0.2) * 100),
+    0,
+    100
+  );
 
-  // Check top, bottom-left, bottom-right, side-left, side-right points relative to bounding box
-  if (minR < 12) tipHits++;
-  if (maxR > 20 && minC < centerC - 3) tipHits++;
-  if (maxR > 20 && maxC > centerC + 3) tipHits++;
-  if (minC < 10 && Math.abs(centerR - 16) < 8) tipHits++;
-  if (maxC > 21 && Math.abs(centerR - 16) < 8) tipHits++;
+  const progressPercentage = clamp(
+    Math.round(clarityPercentage * 0.62 + coverage * 25 + 5),
+    0,
+    100
+  );
 
-  // 2. Cosine Similarity on Latent Mu Vector
-  let dotProduct = 0, normA = 0, normB = 0;
-  for (let i = 0; i < muData.length; i++) {
-    dotProduct += muData[i] * vStar[i];
-    normA += muData[i] * muData[i];
-    normB += vStar[i] * vStar[i];
-  }
-  const cosSim = normA && normB ? dotProduct / (Math.sqrt(normA) * Math.sqrt(normB)) : 0;
-
-  // 3. Score Mapping Rule
-  let finalScore = 0;
-
-  if (tipHits >= 4 || cosSim > 0.70) {
-    // 5-Point Star (Outline or Solid) -> Bullseye Target
-    finalScore = Math.max(90, Math.min(98, Math.round(75 + cosSim * 25)));
-  } else if (tipHits === 3 || cosSim > 0.55) {
-    // 4-Point Star / Pentagon -> 75%
-    finalScore = 75;
-  } else if (boundingArea > 150 && width / height >= 0.65 && width / height <= 1.5) {
-    // Square, Circle, Oval -> 55-60%
-    finalScore = 60;
-  } else {
-    // Scribbles / Arbitrary shapes -> Below 50%
-    finalScore = Math.max(0, Math.min(48, Math.round(cosSim * 60)));
-  }
-
-  return getMetricResult(finalScore);
+  return getMetricResult(clarityPercentage, progressPercentage);
 }
 
-function getMetricResult(rawPercentage: number): ClarityMetrics {
+function getMetricResult(rawPercentage: number, progressPercentage = rawPercentage): ClarityMetrics {
   let starRating = 1;
   let feedbackText = 'Unrecognizable shapes.';
   let hint = 'Start with simple sharp shapes like a Square, Box, Circle, or Plus (+) symbol!';
@@ -119,7 +93,7 @@ function getMetricResult(rawPercentage: number): ClarityMetrics {
   if (rawPercentage >= 75) {
     starRating = 5;
     feedbackText = 'Bullseye! Now you know what shape the AI was trained on.';
-    hint = 'Outstanding! You achieved a clear shape guess!';
+    hint = 'Outstanding! You achieved a clear shape guess! Now try to hit 5 stars and a full bar!';
   } else if (rawPercentage >= 58) {
     starRating = 4;
     feedbackText = 'Opps! You almost got it';
@@ -136,6 +110,7 @@ function getMetricResult(rawPercentage: number): ClarityMetrics {
 
   return {
     clarityPercentage: rawPercentage,
+    progressPercentage,
     starRating,
     feedbackText,
     hint,

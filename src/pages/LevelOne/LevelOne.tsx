@@ -107,7 +107,7 @@ function LevelOne() {
                 </p>
                 {/* <ClarityProgressBar metrics={clarityMetrics} /> */}
                 <ClarityDisplay metrics={metrics} />
-                <ProgressBar value={metrics?.clarityPercentage ?? 0} showPercentage={false} />
+                <ProgressBar value={metrics?.progressPercentage ?? 0} showPercentage={false} />
             </section>
 
             {/* GAME AREA */}
