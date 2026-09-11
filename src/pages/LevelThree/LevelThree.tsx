@@ -15,11 +15,15 @@ function LevelThree() {
     const navigate = useNavigate();
     
     // UI Game score states
-    const [aiClarityScore, setAiClarityScore] = useState<number>(3.4);
-    const [progressScore, setProgressScore] = useState<number>(40.4);
+    const [aiClarityScore, setAiClarityScore] = useState<number>(0.0);
+    const [progressScore, setProgressScore] = useState<number>(0.0);
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
     const [metrics, setMetrics] = useState<ClarityMetrics | null>(null);
+    const [canvasKey, setCanvasKey] = useState(0);
 
+    const clarityPercentage = metrics?.clarityPercentage ?? 0;
+    const progressPercentage = metrics?.progressPercentage ?? 0;
+    const canSubmit = clarityPercentage >= 75 && progressPercentage >= 75;
     const displayProgress = metrics?.progressPercentage ?? progressScore;
 
     // Strategy 3: Interactive UI Bias Scale (1.0 = Default Auto-Adaptive, 0.0 - 2.0 multiplier)
@@ -40,6 +44,24 @@ function LevelThree() {
     const clearActiveTimeline = () => {
         timelineTimersRef.current.forEach((timer) => clearTimeout(timer));
         timelineTimersRef.current = [];
+    };
+
+    const handleReset = () => {
+        clearActiveTimeline();
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
+        }
+
+        setBiasUserScale(1.0);
+        setActiveAlpha(0.0);
+        setCurrentStage('resting');
+        setInputGridData(null);
+        setOutputGridData(null);
+        setAiClarityScore(0.0);
+        setProgressScore(0.0);
+        setCanvasKey((prev) => prev + 1);
+        setMetrics(null);
     };
 
     // Called when user edits input canvas or adjusts bias slider
@@ -129,6 +151,7 @@ function LevelThree() {
                 <div className={style.panelColumn}>
                     <h3>Input</h3>
                     <PixelCanvas 
+                        key={canvasKey}
                         onChange={(matrix) => handleInputCanvasEdit(matrix, biasUserScale)} 
                         rows={32} 
                         cols={32} 
@@ -177,10 +200,7 @@ function LevelThree() {
             <section className={style.bottomActions}>
                 <Button
                     variant="outlined"
-                    onClick={() => {
-                        setBiasUserScale(1.0);
-                        navigate('/level-2');
-                    }}
+                    onClick={handleReset}
                     style={{ color: "#008298", borderColor: "#008298" }}
                 >
                     {t('home.actions.reset')}
@@ -203,6 +223,14 @@ function LevelThree() {
                     variant="outlined"
                     style={{ color: "#008298", borderColor: "#008298" }}
                     onClick={() => navigate('/level-4')}
+                    disabled={!canSubmit}
+                    sx={{
+                        opacity: canSubmit ? 1 : 0.5,
+                        '&.Mui-disabled': {
+                            borderColor: '#a7b7bc',
+                            color: '#6f7d85'
+                        }
+                    }}
                 >
                     Submit
                 </Button>
