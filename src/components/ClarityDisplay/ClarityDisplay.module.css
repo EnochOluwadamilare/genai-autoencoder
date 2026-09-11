@@ -6,6 +6,11 @@
     justify-content: center;
 }
 
+.labelText {
+    color: #008298;
+    font-weight: bold;
+}
+
 .stars {
     color: #f7c948;
     font-size: 1.5rem;

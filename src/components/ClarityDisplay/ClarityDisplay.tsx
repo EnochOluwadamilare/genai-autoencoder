@@ -13,7 +13,7 @@ export function ClarityDisplay({ metrics }: ClarityDisplayProps) {
 
   return (
     <div className={style.claritySection}>
-      <span>Clarity:</span>
+      <span className={style.labelText}>Clarity:</span>
 
       <div className={style.stars} aria-label={`Clarity rating: ${filledStarsCount} out of 5 stars`}>
         {Array.from({ length: totalStars }).map((_, index) => {
