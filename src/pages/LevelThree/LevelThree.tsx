@@ -20,6 +20,8 @@ function LevelThree() {
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
     const [metrics, setMetrics] = useState<ClarityMetrics | null>(null);
 
+    const displayProgress = metrics?.progressPercentage ?? progressScore;
+
     // Strategy 3: Interactive UI Bias Scale (1.0 = Default Auto-Adaptive, 0.0 - 2.0 multiplier)
     const [biasUserScale, setBiasUserScale] = useState<number>(1.0);
     const [activeAlpha, setActiveAlpha] = useState<number>(0.0);
@@ -76,9 +78,12 @@ function LevelThree() {
                     setOutputGridData(res.outputMatrix);
                     setActiveAlpha(res.computedAlpha);
                     
-                    // Update Clarity Score based on active alpha alignment
-                    const clarity = Math.min(5.0, Number((2.5 + res.computedAlpha * 1.1).toFixed(1)));
+                    // Update Level 3 progress and clarity values from the shared inference metrics
+                    const clarity = Math.min(5.0, Number((res.metrics.starRating ?? 1).toFixed(1)));
+                    const progress = Number((res.metrics.progressPercentage ?? 0).toFixed(0));
                     setAiClarityScore(clarity);
+                    setProgressScore(progress);
+                    setMetrics(res.metrics);
                 }
             }
         }, 1700);
@@ -108,8 +113,14 @@ function LevelThree() {
                     Can you guess what the AI learned?
                     Adjust the Input or Bias intensity until the Output picture morphs.
                 </p>
-                <ClarityDisplay metrics={metrics} />
-                <ProgressBar value={metrics?.progressPercentage ?? 0} showPercentage={false} />
+                <ClarityDisplay metrics={metrics ?? {
+                    clarityPercentage: aiClarityScore,
+                    progressPercentage: progressScore,
+                    starRating: 3,
+                    feedbackText: 'Draw something!',
+                    hint: 'Start with simple sharp shapes.'
+                }} />
+                <ProgressBar value={displayProgress} showPercentage={false} />
             </section>
 
             {/* GAME AREA */}

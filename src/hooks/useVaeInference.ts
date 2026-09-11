@@ -132,6 +132,30 @@ export function calculateAdaptiveBaseAlpha(muData: number[]): { baseAlpha: numbe
   return { baseAlpha, l2Norm };
 }
 
+export function calculateLevel3ProgressAndClarity(
+  inputMatrix: number[][],
+  muData: number[] | null,
+  vStar: number[] | null,
+  alpha: number
+): ClarityMetrics {
+  const baseMetrics = calculateClarityMetrics(inputMatrix, muData, vStar);
+  const alphaFactor = clamp(alpha / 2, 0, 1);
+
+  const clarityPercentage = clamp(
+    Math.round(baseMetrics.clarityPercentage * (0.7 + alphaFactor * 0.5)),
+    0,
+    100
+  );
+
+  const progressPercentage = clamp(
+    Math.round(baseMetrics.progressPercentage * (0.8 + alphaFactor * 0.4)),
+    0,
+    100
+  );
+
+  return getMetricResult(clarityPercentage, progressPercentage);
+}
+
 // --- Hook for Level 1 ---
 
 export function useVaeInference() {
@@ -319,11 +343,15 @@ export function useVaeInferenceAlpha() {
       const encoderResults = await encoderRef.current.run({ input_image: inputTensor });
       const muData = Array.from(encoderResults.mu.data as Float32Array);
 
-      // Latent-based classification evaluation
-      const metrics = calculateClarityMetrics(inputMatrix, muData, vStarRef.current);
-
+      // Level 3-specific progress and clarity evaluation
       const { baseAlpha, l2Norm } = calculateAdaptiveBaseAlpha(muData);
       const effectiveAlpha = baseAlpha * userScale;
+      const metrics = calculateLevel3ProgressAndClarity(
+        inputMatrix,
+        muData,
+        vStarRef.current,
+        effectiveAlpha
+      );
 
       const biasedZ = new Float32Array(muData.length);
       for (let i = 0; i < muData.length; i++) {
