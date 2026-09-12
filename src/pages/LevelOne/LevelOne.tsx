@@ -84,9 +84,13 @@ function LevelOne() {
             setCurrentStage("compressing");
         }, 500);
 
-        const timer2 = setTimeout(async () => {
+        const timer2 = setTimeout(() => {
             setCurrentStage("thinking");
+        }, 1700);
 
+        const timer3 = setTimeout(async () => {
+            setCurrentStage("reconstructing");
+            
             // Execute ONNX model + Latent Star Bias during 'thinking' stage
             if (latestInputData && isLoaded) {
                 const reconstructedResult = await runInferenceWithBias(latestInputData, starBiasAlpha);
@@ -95,10 +99,6 @@ function LevelOne() {
                     setMetrics(reconstructedResult.metrics);
                 }
             }
-        }, 1700);
-
-        const timer3 = setTimeout(() => {
-            setCurrentStage("reconstructing");
         }, 3300);
 
         const timer4 = setTimeout(() => {
