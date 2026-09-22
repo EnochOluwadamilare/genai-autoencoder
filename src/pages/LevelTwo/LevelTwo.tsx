@@ -1,4 +1,4 @@
-import { Button } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import style from './style.module.css';
 import AppBar from '../../components/AppBar';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +20,7 @@ function LevelTwo() {
     const [metrics] = useState<ClarityMetrics | null>(null);
     const [latentVector, setLatentVector] = useState<number[]>(INITIAL_LEVEL_TWO_VECTOR);
     const [outputGridData, setOutputGridData] = useState<number[][] | null>(null);
+    const [showHint, setShowHint] = useState(false);
     const { runLevelTwoInference, isLoaded } = useLevelTwoVaeInference();
     
     // Create refs to keep track of our active timers
@@ -160,7 +161,7 @@ function LevelTwo() {
             <Button
                 variant="outlined"
                 style={{color:"#008298", borderColor: "#008298"}}
-                // onClick={runSimulation}
+                onClick={() => setShowHint(true)}
                 >
                 Hint 👁️
             </Button>
@@ -172,6 +173,20 @@ function LevelTwo() {
                 Submit
             </Button>
         </section>
+
+        <Dialog open={showHint} onClose={() => setShowHint(false)} aria-labelledby="level-2-hint-title">
+            <DialogTitle id="level-2-hint-title">Hint</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Start by looking at each number as a hidden feature knob. Change only one value at a time and ask: Does the picture get taller, wider, rounder, sharper, brighter, or more stretched? Think of each number like a tiny switch that controls one trait in the image. Small changes can make big differences, so watch carefully and look for patterns.
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setShowHint(false)} autoFocus>
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
     </div>;
 }
 
