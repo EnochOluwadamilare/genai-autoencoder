@@ -7,15 +7,7 @@ export type VAEStage = "resting" | "inputting" | "compressing" | "thinking" | "r
 
 interface LatentVectorProps extends SVGProps<SVGSVGElement> {
   stage: VAEStage;
-  onValueChange?: (index: number, delta: number) => void;
-}
-
-interface VectorValues {
-  val1: number;
-  val2: number;
-  val3: number;
-  val4: number;
-  val5: number;
+  onValueChange?: (index: number, value: number) => void;
 }
 
 const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => {
@@ -40,25 +32,32 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
     })
 
     const handleButtonClick = (groupKey: string, delta: number) => {
-      const nextValue = Number((textValues[groupKey] ?? 0) + delta)
-      const clampedValue = Number(nextValue.toFixed(1))
+      const currentValue = Number(textValues[groupKey] ?? 0)
+      const nextValue = Number((currentValue + delta).toFixed(1))
 
       setTextValues((prev) => ({
         ...prev,
-        [groupKey]: clampedValue,
+        [groupKey]: nextValue,
       }))
 
       if (onValueChange) {
-        const index = Number(groupKey.replace(/\D/g, "")) || 0
-        onValueChange(index, delta)
+        const index = Number(groupKey.replace(/\D/g, "")) - 1
+        onValueChange(index, nextValue)
       }
     };
 
     const handleInputChange = (groupKey: string, value: number) => {
+      const nextValue = Number.isFinite(value) ? Number(value.toFixed(1)) : 0
+
       setTextValues((prev) => ({
         ...prev,
-        [groupKey]: Number.isFinite(value) ? value : 0,
+        [groupKey]: nextValue,
       }))
+
+      if (onValueChange) {
+        const index = Number(groupKey.replace(/\D/g, "")) - 1
+        onValueChange(index, nextValue)
+      }
     }
 
     // --- ANIMATION CONFIGURATIONS (VARIANTS) ---
@@ -103,14 +102,6 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
       opacity: 1, 
       transition: { duration: 1.0, ease: "easeOut" }
     }
-  };
-
-  const textVariants: Variants = {
-    resting: { opacity: 1, scale: 1 },
-    inputting: { opacity: 0.5 },
-    compressing: { opacity: 0.5 },
-    thinking: { opacity: 1, scale: 1.05, transition: { duration: 0.3 } },
-    reconstructing: { opacity: 1 }
   };
 
   return (

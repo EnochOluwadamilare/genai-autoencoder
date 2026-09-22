@@ -1,27 +1,26 @@
-import { LangSelect, PercentageBar } from '@genai-fi/base';
 import { Button } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
 import style from './style.module.css';
 import AppBar from '../../components/AppBar';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { color } from 'framer-motion';
-import {LatentSpaceSVG, type VAEStage} from "../../components/LatentSpace/LatentSpaceSVG";
+import { type VAEStage } from '../../components/LatentSpace/LatentSpaceSVG';
 import PixelCanvas from '../../components/PixelCanvas/PixelCanvas';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
-import { LatentSpaceSVGWC } from '../../components/LatentSpace/LatentSpaceSVGWC';
 import { LatentVector } from '../../components/LatentSpace/LatentVector/LatentVector';
 import type { ClarityMetrics } from '../../hooks/useVaeInference';
+import { INITIAL_LEVEL_TWO_VECTOR, useLevelTwoVaeInference } from './useVaeInference';
 
 function LevelTwo() {
     const { t } = useTranslation('image_adv');
     const navigate = useNavigate();
-    const [aiClarityScore, setAiClarityScore] = useState<number>(3.4);
-    const [progressScore, setProgressScore] = useState<number>(40.4);
+    const [progressScore] = useState<number>(40.4);
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
-    const [metrics, setMetrics] = useState<ClarityMetrics | null>(null);
+    const [metrics] = useState<ClarityMetrics | null>(null);
+    const [latentVector, setLatentVector] = useState<number[]>(INITIAL_LEVEL_TWO_VECTOR);
+    const [outputGridData, setOutputGridData] = useState<number[][] | null>(null);
+    const { runLevelTwoInference, isLoaded } = useLevelTwoVaeInference();
     
     // Create refs to keep track of our active timers
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -49,6 +48,27 @@ function LevelTwo() {
             runAnimationOrchestration();
         }, 1000); // 2000 milliseconds = 2 seconds of zero user interaction
     };
+
+    useEffect(() => {
+        if (!isLoaded) {
+            return;
+        }
+
+        let isCancelled = false;
+
+        const runDecoder = async () => {
+            const result = await runLevelTwoInference(latentVector);
+            if (!isCancelled && result) {
+                setOutputGridData(result.outputMatrix);
+            }
+        };
+
+        runDecoder();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [isLoaded, latentVector, runLevelTwoInference]);
 
     // Runs the complete step-by-step VAE animation from start to finish
     const runAnimationOrchestration = () => {
@@ -108,13 +128,22 @@ function LevelTwo() {
             {/* LATENT */}
             <div className={style.latentColumn}>
                 {/* <LatentSpaceSVGWC stage={currentStage}></LatentSpaceSVGWC> */}
-                <LatentVector stage={currentStage}></LatentVector>
+                <LatentVector
+                    stage={currentStage}
+                    onValueChange={(index, value) => {
+                        setLatentVector((prev) => {
+                            const nextVector = [...prev];
+                            nextVector[index] = Number.isFinite(value) ? Number(value.toFixed(1)) : 0;
+                            return nextVector;
+                        });
+                    }}
+                />
             </div>
 
             {/* OUTPUT */}
             <div className={style.panelColumn}>
-                <h3>Output</h3>
-                <PixelCanvas rows={32} cols={32} cellSize={12} readOnly/>
+                <h3>Output {isLoaded ? ' ' : '(Loading Models...)'}</h3>
+                <PixelCanvas rows={32} cols={32} cellSize={12} readOnly grid={outputGridData} />
             </div>
         </section>
 
