@@ -12,6 +12,7 @@ import { useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { LatentSpaceSVGWC } from '../../components/LatentSpace/LatentSpaceSVGWC';
+import { LatentVector } from '../../components/LatentSpace/LatentVector/LatentVector';
 import type { ClarityMetrics } from '../../hooks/useVaeInference';
 
 function LevelTwo() {
@@ -106,7 +107,8 @@ function LevelTwo() {
 
             {/* LATENT */}
             <div className={style.latentColumn}>
-                <LatentSpaceSVGWC stage={currentStage}></LatentSpaceSVGWC>
+                {/* <LatentSpaceSVGWC stage={currentStage}></LatentSpaceSVGWC> */}
+                <LatentVector stage={currentStage}></LatentVector>
             </div>
 
             {/* OUTPUT */}
