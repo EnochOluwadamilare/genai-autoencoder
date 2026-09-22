@@ -32,18 +32,20 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
     })
 
     const handleButtonClick = (groupKey: string, delta: number) => {
-      const currentValue = Number(textValues[groupKey] ?? 0)
-      const nextValue = Number((currentValue + delta).toFixed(1))
+      setTextValues((prev) => {
+        const currentValue = Number(prev[groupKey] ?? 0)
+        const nextValue = Number((currentValue + delta).toFixed(1))
 
-      setTextValues((prev) => ({
-        ...prev,
-        [groupKey]: nextValue,
-      }))
+        if (onValueChange) {
+          const index = Number(groupKey.replace(/\D/g, "")) - 1
+          onValueChange(index, nextValue)
+        }
 
-      if (onValueChange) {
-        const index = Number(groupKey.replace(/\D/g, "")) - 1
-        onValueChange(index, nextValue)
-      }
+        return {
+          ...prev,
+          [groupKey]: nextValue,
+        }
+      })
     };
 
     const handleInputChange = (groupKey: string, value: number) => {
@@ -59,6 +61,27 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
         onValueChange(index, nextValue)
       }
     }
+
+    const holdIntervalRef = React.useRef<number | null>(null)
+
+    const stopHold = React.useCallback(() => {
+      if (holdIntervalRef.current !== null) {
+        window.clearInterval(holdIntervalRef.current)
+        holdIntervalRef.current = null
+      }
+    }, [])
+
+    const startHold = React.useCallback((groupKey: string, delta: number) => {
+      stopHold()
+      // handleButtonClick(groupKey, delta)
+      holdIntervalRef.current = window.setInterval(() => {
+        handleButtonClick(groupKey, delta)
+      }, 350 /*Speed of increment/decrement when holding down the button*/)
+    }, [stopHold])
+
+    React.useEffect(() => {
+      return () => stopHold()
+    }, [stopHold])
 
     // --- ANIMATION CONFIGURATIONS (VARIANTS) ---
   
@@ -2559,7 +2582,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus1"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus1" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus1")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text1", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text1", 0.1)}
           >
             <path
@@ -2627,7 +2659,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus1"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus1" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus1")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text1", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text1", -0.1)}
           >
             <path
@@ -2651,7 +2692,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus3"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus3" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus3")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text3", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text3", 0.1)}
           >
             <path
@@ -2720,7 +2770,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus3"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus3" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus3")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text3", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text3", -0.1)}
           >
             <path
@@ -2744,7 +2803,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus5"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus5" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus5")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text5", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text5", 0.1)}
           >
             <path
@@ -2812,7 +2880,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus5"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus5" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus5")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text5", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text5", -0.1)}
           >
             <path
@@ -2836,7 +2913,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus7"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus7" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus7")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text7", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text7", 0.1)}
           >
             <path
@@ -2904,7 +2990,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus7"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus7" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus7")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text7", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text7", -0.1)}
           >
             <path
@@ -2928,7 +3023,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus9"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus9" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus9")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text9", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text9", 0.1)}
           >
             <path
@@ -2996,7 +3100,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus9"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus9" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus9")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text9", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text9", -0.1)}
           >
             <path
@@ -3020,7 +3133,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus11"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus11" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus11")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text11", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text11", 0.1)}
           >
             <path
@@ -3088,7 +3210,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus11"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus11" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus11")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text11", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text11", -0.1)}
           >
             <path
@@ -3112,7 +3243,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus13"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus13" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus13")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text13", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text13", 0.1)}
           >
             <path
@@ -3180,7 +3320,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus13"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus13" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus13")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text13", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text13", -0.1)}
           >
             <path
@@ -3204,7 +3353,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus15"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus15" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus15")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text15", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text15", 0.1)}
           >
             <path
@@ -3272,7 +3430,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus15"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus15" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus15")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text15", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text15", -0.1)}
           >
             <path
@@ -3296,7 +3463,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus4"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus4" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus4")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text4", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text4", 0.1)}
           >
             <path
@@ -3364,7 +3540,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus4"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus4" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus4")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text4", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text4", -0.1)}
           >
             <path
@@ -3388,7 +3573,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus6"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus6" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus6")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text6", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text6", 0.1)}
           >
             <path
@@ -3456,7 +3650,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus6"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus6" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus6")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text6", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text6", -0.1)}
           >
             <path
@@ -3480,7 +3683,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus8"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus8" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus8")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text8", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text8", 0.1)}
           >
             <path
@@ -3548,7 +3760,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus8"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus8" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus8")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text8", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text8", -0.1)}
           >
             <path
@@ -3572,7 +3793,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus10"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus10" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus10")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text10", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text10", 0.1)}
           >
             <path
@@ -3640,7 +3870,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus10"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus10" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus10")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text10", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text10", -0.1)}
           >
             <path
@@ -3664,7 +3903,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus12"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus12" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus12")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text12", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text12", 0.1)}
           >
             <path
@@ -3732,7 +3980,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus12"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus12" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus12")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text12", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text12", -0.1)}
           >
             <path
@@ -3756,7 +4013,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus14"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus14" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus14")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text14", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text14", 0.1)}
           >
             <path
@@ -3824,7 +4090,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus14"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus14" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus14")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text14", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text14", -0.1)}
           >
             <path
@@ -3848,7 +4123,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus16"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus16" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus16")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text16", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text16", 0.1)}
           >
             <path
@@ -3916,7 +4200,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus16"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus16" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus16")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text16", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text16", -0.1)}
           >
             <path
@@ -4240,7 +4533,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="minus2"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus2" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus2")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text2", -0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text2", -0.1)}
           >
             <path
@@ -4262,7 +4564,16 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           <g id="plus2"
             style={{ cursor: "pointer", opacity: hoveredButton === "plus2" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("plus2")}
-            onMouseLeave={() => setHoveredButton(null)}
+            onMouseLeave={() => {
+              setHoveredButton(null)
+              stopHold()
+            }}
+            onMouseDown={(event) => {
+              event.preventDefault()
+              startHold("text2", 0.1)
+            }}
+            onMouseUp={stopHold}
+            onMouseOut={stopHold}
             onClick={() => handleButtonClick("text2", 0.1)}
           >
             <path
