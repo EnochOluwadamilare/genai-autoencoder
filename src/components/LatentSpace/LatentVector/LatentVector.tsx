@@ -2638,6 +2638,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
+                // type="number"
                 step="0.1"
                 value={textValues.text1}
                 onChange={(e) => handleInputChange("text1", Number(e.target.value) || 0)}
@@ -2748,7 +2749,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text3}
                 onChange={(e) => handleInputChange("text3", Number(e.target.value) || 0)}
@@ -2969,7 +2970,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text7}
                 onChange={(e) => handleInputChange("text7", Number(e.target.value) || 0)}
@@ -3079,7 +3080,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text9}
                 onChange={(e) => handleInputChange("text9", Number(e.target.value) || 0)}
@@ -3189,7 +3190,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text11}
                 onChange={(e) => handleInputChange("text11", Number(e.target.value) || 0)}
@@ -3299,7 +3300,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text13}
                 onChange={(e) => handleInputChange("text13", Number(e.target.value) || 0)}
@@ -3409,7 +3410,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text15}
                 onChange={(e) => handleInputChange("text15", Number(e.target.value) || 0)}
@@ -3519,7 +3520,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text4}
                 onChange={(e) => handleInputChange("text4", Number(e.target.value) || 0)}
@@ -3629,7 +3630,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text6}
                 onChange={(e) => handleInputChange("text6", Number(e.target.value) || 0)}
@@ -3739,7 +3740,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text8}
                 onChange={(e) => handleInputChange("text8", Number(e.target.value) || 0)}
@@ -3849,7 +3850,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text10}
                 onChange={(e) => handleInputChange("text10", Number(e.target.value) || 0)}
@@ -3959,7 +3960,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text12}
                 onChange={(e) => handleInputChange("text12", Number(e.target.value) || 0)}
@@ -4069,7 +4070,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text14}
                 onChange={(e) => handleInputChange("text14", Number(e.target.value) || 0)}
@@ -4179,7 +4180,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text16}
                 onChange={(e) => handleInputChange("text16", Number(e.target.value) || 0)}
@@ -4620,7 +4621,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
               }}
             >
               <input
-                type="number"
+                // type="number"
                 step="0.1"
                 value={textValues.text2}
                 onChange={(e) => handleInputChange("text2", Number(e.target.value) || 0)}
