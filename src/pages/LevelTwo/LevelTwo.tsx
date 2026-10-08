@@ -123,7 +123,7 @@ function LevelTwo() {
             {/* INPUT */}
             <div className={style.panelColumn}>
                 <h3>Input</h3>
-                <PixelCanvas onChange={handleInputCanvasEdit} rows={32} cols={32} cellSize={12} />
+                <PixelCanvas injectedStyle={{ pointerEvents: 'none', opacity: 0.4 }} onChange={handleInputCanvasEdit} rows={32} cols={32} cellSize={12} />
             </div>
 
             {/* LATENT */}

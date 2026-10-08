@@ -1,5 +1,5 @@
 import { Stage, Layer, Rect } from 'react-konva';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import style from './style.module.css';
 
 type PixelCanvasProps = {
@@ -10,6 +10,7 @@ type PixelCanvasProps = {
     initialGrid?: number[][];
     readOnly?: boolean;
     onChange?: (grid: number[][]) => void;
+    injectedStyle?: CSSProperties;
 };
 
 function PixelCanvas({
@@ -20,6 +21,7 @@ function PixelCanvas({
     initialGrid,
     readOnly = false,
     onChange,
+    injectedStyle,
 }: PixelCanvasProps) {
 
     // Create empty grid
@@ -63,7 +65,7 @@ function PixelCanvas({
     };
 
     return (
-        <div className={style.wrapper}>
+        <div className={style.wrapper}  style={injectedStyle}>
             <Stage
                 width={cols * cellSize}
                 height={rows * cellSize}
