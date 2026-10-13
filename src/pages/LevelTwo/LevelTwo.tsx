@@ -5,23 +5,71 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { type VAEStage } from '../../components/LatentSpace/LatentSpaceSVG';
 import PixelCanvas from '../../components/PixelCanvas/PixelCanvas';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { LatentVector } from '../../components/LatentSpace/LatentVector/LatentVector';
 import type { ClarityMetrics } from '../../hooks/useVaeInference';
-import { INITIAL_LEVEL_TWO_VECTOR, useLevelTwoVaeInference } from './useVaeInference';
+import {
+    getNearestShapePreset,
+    getShapeProgressScore,
+    INITIAL_LEVEL_TWO_VECTOR,
+    LEVEL_TWO_SHAPE_PRESETS,
+    useLevelTwoVaeInference,
+} from './useVaeInference';
 
 function LevelTwo() {
     const { t } = useTranslation('image_adv');
     const navigate = useNavigate();
-    const [progressScore] = useState<number>(40.4);
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
-    const [metrics] = useState<ClarityMetrics | null>(null);
     const [latentVector, setLatentVector] = useState<number[]>(INITIAL_LEVEL_TWO_VECTOR);
     const [outputGridData, setOutputGridData] = useState<number[][] | null>(null);
     const [showHint, setShowHint] = useState(false);
+    const [discoveredShapeIds, setDiscoveredShapeIds] = useState<string[]>([]);
     const { runLevelTwoInference, isLoaded } = useLevelTwoVaeInference();
+
+    const targetShape = useMemo(() => getNearestShapePreset(latentVector), [latentVector]);
+
+    const progressScore = getShapeProgressScore(latentVector, targetShape.vector);
+
+    const metrics = useMemo<ClarityMetrics>(() => {
+        const discoveredCount = discoveredShapeIds.length;
+        const starRating = Math.min(5, discoveredCount);
+
+        return {
+            clarityPercentage: Math.min(100, discoveredCount * 20 + progressScore * 0.2),
+            progressPercentage: progressScore,
+            starRating,
+            feedbackText:
+                discoveredCount === 0
+                    ? 'No shapes discovered yet. Move closer to the current target.'
+                    : `Discovered ${discoveredCount} shape${discoveredCount === 1 ? '' : 's'} so far.`,
+            hint:
+                discoveredCount === 0
+                    ? `Try to match the ${targetShape.label} target and reach 70% to discover it.`
+                    : `Current target: ${targetShape.label}. Aim for another match.`,
+        };
+    }, [discoveredShapeIds.length, progressScore, targetShape.label]);
+
+    const saveDiscoveredShape = () => {
+        if (discoveredShapeIds.includes(targetShape.id)) {
+            return;
+        }
+
+        setDiscoveredShapeIds((currentShapes) => [...currentShapes, targetShape.id]);
+    };
+
+    useEffect(() => {
+        if (progressScore >= 70 && !discoveredShapeIds.includes(targetShape.id)) {
+            setDiscoveredShapeIds((currentShapes) => {
+                if (currentShapes.includes(targetShape.id)) {
+                    return currentShapes;
+                }
+
+                return [...currentShapes, targetShape.id];
+            });
+        }
+    }, [discoveredShapeIds, progressScore, targetShape.id]);
     
     // Create refs to keep track of our active timers
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -114,7 +162,12 @@ function LevelTwo() {
                 Now can you tweak the Latent Space to see what shapes or numbers the AI has learned, and how it affects the output?<br/>Adjust the Latent space until the Decoder picture makes sense.
             </p>
             <ClarityDisplay metrics={metrics} />
-            {/* <PercentageBar colour={'blue'} value={26}></PercentageBar> */}
+            <div style={{ marginTop: '0.75rem', marginBottom: '0.5rem' }}>
+                <div style={{ fontWeight: 700, color: '#008298' }}>Target shape: {targetShape.label}</div>
+                <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>
+                    Discovered: {discoveredShapeIds.length}/{LEVEL_TWO_SHAPE_PRESETS.length} shapes
+                </div>
+            </div>
             <ProgressBar value={progressScore} showPercentage={false}/>
         </section>
 
@@ -164,6 +217,14 @@ function LevelTwo() {
                 onClick={() => setShowHint(true)}
                 >
                 Hint 👁️
+            </Button>
+
+            <Button
+                variant="outlined"
+                style={{color:"#008298", borderColor: "#008298"}}
+                onClick={() => saveDiscoveredShape()}
+                >
+                Save Discovered Shape
             </Button>
 
             <Button
