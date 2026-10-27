@@ -44,7 +44,7 @@ function LevelTwo() {
 
     const metrics = useMemo<ClarityMetrics>(() => {
         const discoveredCount = discoveredShapeIds.length;
-        const starRating = Math.min(5, discoveredCount);
+        const starRating = Math.min(6, discoveredCount);
 
         return {
             clarityPercentage: Math.min(100, discoveredCount * 20 + progressScore * 0.2),
@@ -60,6 +60,8 @@ function LevelTwo() {
                     : `Current target: ${targetShape.label}. Aim for another match.`,
         };
     }, [discoveredShapeIds.length, progressScore, targetShape.label]);
+
+    const canSubmit = metrics.starRating >= 4;
 
     const saveDiscoveredShape = () => {
         if (!shapeName.trim() || !outputGridData) {
@@ -275,6 +277,7 @@ function LevelTwo() {
             <Button
                 variant="outlined"
                 style={{color:"#008298", borderColor: "#008298"}}
+                disabled={!canSubmit}
                 onClick={() => navigate('/level-3')}>
                 Submit
             </Button>
