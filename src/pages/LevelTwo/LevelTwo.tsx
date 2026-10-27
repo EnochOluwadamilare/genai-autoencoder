@@ -200,7 +200,7 @@ function LevelTwo() {
             <p>
                 <span className={style.goalText}>Goal:</span>
                 {' '}
-                Now can you tweak the Latent Space to see what shapes or numbers the AI has learned, and how it affects the output?<br/>Adjust the Latent space until the Decoder picture makes sense.
+                Now can you tweak the Latent Space to see what shapes or numbers the AI has learned, and how it affects the output?<br/>Adjust the DNA Code/ Latent vector until the decoder output makes sense.
             </p>
             <ClarityDisplay metrics={metrics} />
             <div style={{ marginTop: '0.75rem', marginBottom: '0.5rem' }}>
