@@ -1,4 +1,4 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField } from '@mui/material';
 import style from './style.module.css';
 import AppBar from '../../components/AppBar';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,12 @@ import {
     useLevelTwoVaeInference,
 } from './useVaeInference';
 
+type SavedShape = {
+    name: string;
+    vector: number[];
+    outputGrid: number[][];
+};
+
 function LevelTwo() {
     const { t } = useTranslation('image_adv');
     const navigate = useNavigate();
@@ -25,6 +31,9 @@ function LevelTwo() {
     const [latentVector, setLatentVector] = useState<number[]>(INITIAL_LEVEL_TWO_VECTOR);
     const [outputGridData, setOutputGridData] = useState<number[][] | null>(null);
     const [showHint, setShowHint] = useState(false);
+    const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [shapeName, setShapeName] = useState('');
+    const [savedShapes, setSavedShapes] = useState<SavedShape[]>([]);
     const [discoveredShapeIds, setDiscoveredShapeIds] = useState<string[]>([]);
     const { runLevelTwoInference, isLoaded } = useLevelTwoVaeInference();
 
@@ -52,11 +61,28 @@ function LevelTwo() {
     }, [discoveredShapeIds.length, progressScore, targetShape.label]);
 
     const saveDiscoveredShape = () => {
+        if (!shapeName.trim() || !outputGridData) {
+            return;
+        }
+
+        setSavedShapes((currentShapes) => [
+            ...currentShapes,
+            {
+                name: shapeName.trim(),
+                vector: [...latentVector],
+                outputGrid: outputGridData.map((row) => [...row]),
+            },
+        ]);
+
         if (discoveredShapeIds.includes(targetShape.id)) {
+            setShowSaveDialog(false);
+            setShapeName('');
             return;
         }
 
         setDiscoveredShapeIds((currentShapes) => [...currentShapes, targetShape.id]);
+        setShowSaveDialog(false);
+        setShapeName('');
     };
 
     useEffect(() => {
@@ -167,6 +193,11 @@ function LevelTwo() {
                 <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>
                     Discovered: {discoveredShapeIds.length}/{LEVEL_TWO_SHAPE_PRESETS.length} shapes
                 </div>
+                {savedShapes.length > 0 && (
+                    <div className={style.savedShapes}>
+                        Saved shapes: {savedShapes.map((shape) => shape.name).join(', ')}
+                    </div>
+                )}
             </div>
             <ProgressBar value={progressScore} showPercentage={false}/>
         </section>
@@ -222,7 +253,7 @@ function LevelTwo() {
             <Button
                 variant="outlined"
                 style={{color:"#008298", borderColor: "#008298"}}
-                onClick={() => saveDiscoveredShape()}
+                onClick={() => setShowSaveDialog(true)}
                 >
                 Save Discovered Shape
             </Button>
@@ -245,6 +276,59 @@ function LevelTwo() {
             <DialogActions>
                 <Button onClick={() => setShowHint(false)} autoFocus>
                     Close
+                </Button>
+            </DialogActions>
+        </Dialog>
+
+        <Dialog
+            open={showSaveDialog}
+            onClose={() => setShowSaveDialog(false)}
+            aria-labelledby="level-2-save-title"
+            fullWidth
+            maxWidth="md"
+        >
+            <DialogTitle id="level-2-save-title">Save discovered shape</DialogTitle>
+            <DialogContent>
+                <TextField
+                    autoFocus
+                    required
+                    fullWidth
+                    margin="dense"
+                    label="Shape name"
+                    value={shapeName}
+                    onChange={(event) => setShapeName(event.target.value)}
+                    inputProps={{ maxLength: 60 }}
+                />
+                <div className={style.savePreview}>
+                    <section className={style.savePreviewSection}>
+                        <h3>Latent vector</h3>
+                        <div className={style.latentValues}>
+                            {latentVector.map((value, index) => (
+                                <div className={style.latentValue} key={index}>
+                                    <span>z{index + 1}</span>
+                                    <strong>{value.toFixed(1)}</strong>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                    <section className={style.savePreviewSection}>
+                        <h3>Output image</h3>
+                        {outputGridData ? (
+                            <PixelCanvas rows={32} cols={32} cellSize={8} readOnly grid={outputGridData} />
+                        ) : (
+                            <p role="status">Output image is loading…</p>
+                        )}
+                    </section>
+                </div>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setShowSaveDialog(false)}>Cancel</Button>
+                <Button
+                    onClick={saveDiscoveredShape}
+                    disabled={!shapeName.trim() || !outputGridData}
+                    variant="contained"
+                >
+                    Save shape
                 </Button>
             </DialogActions>
         </Dialog>
