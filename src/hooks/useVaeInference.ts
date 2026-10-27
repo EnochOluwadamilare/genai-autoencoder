@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import * as ort from 'onnxruntime-web';
 
 ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
@@ -18,6 +18,7 @@ export interface Level1InferenceResult {
 
 export interface Level3InferenceResult {
   outputMatrix: number[][];
+  latentVector: number[];
   computedAlpha: number;
   baseAlpha: number;
   latentNorm: number;
@@ -119,15 +120,7 @@ function getMetricResult(rawPercentage: number, progressPercentage = rawPercenta
 
 export function calculateAdaptiveBaseAlpha(muData: number[]): { baseAlpha: number; l2Norm: number } {
   const l2Norm = Math.sqrt(muData.reduce((sum, val) => sum + val * val, 0));
-
-  let baseAlpha = 1.0;
-  if (l2Norm > 14.0) {
-    baseAlpha = 1.8;
-  } else if (l2Norm > 10.0) {
-    baseAlpha = 1.2;
-  } else {
-    baseAlpha = 0.85;
-  }
+  const baseAlpha = l2Norm > 14.0 ? 1.8 : l2Norm > 10.0 ? 1.2 : 0.85;
 
   return { baseAlpha, l2Norm };
 }
@@ -272,6 +265,7 @@ export function useVaeInferenceAlpha() {
   const decoderRef = useRef<ort.InferenceSession | null>(null);
   const vStarRef = useRef<number[] | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadModelsAndBias() {
@@ -317,12 +311,13 @@ export function useVaeInferenceAlpha() {
         setIsLoaded(true);
       } catch (err) {
         console.error('Failed to initialize ONNX VAE models:', err);
+        setLoadError('The drawing model could not be loaded.');
       }
     }
     loadModelsAndBias();
   }, []);
 
-  const runInferenceWithBias = async (
+  const runInferenceWithBias = useCallback(async (
     inputMatrix: number[][],
     userScale: number = 1.0
   ): Promise<Level3InferenceResult | null> => {
@@ -373,6 +368,7 @@ export function useVaeInferenceAlpha() {
 
       return {
         outputMatrix,
+        latentVector: muData,
         computedAlpha: effectiveAlpha,
         baseAlpha,
         latentNorm: l2Norm,
@@ -382,7 +378,7 @@ export function useVaeInferenceAlpha() {
       console.error('Inference Error:', err);
       return null;
     }
-  };
+  }, [isLoaded]);
 
-  return { runInferenceWithBias, isLoaded };
+  return { runInferenceWithBias, isLoaded, loadError };
 }
