@@ -29,6 +29,7 @@ function LevelTwo() {
     const navigate = useNavigate();
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
     const [latentVector, setLatentVector] = useState<number[]>(INITIAL_LEVEL_TWO_VECTOR);
+    const [latentVectorResetKey, setLatentVectorResetKey] = useState(0);
     const [outputGridData, setOutputGridData] = useState<number[][] | null>(null);
     const [showHint, setShowHint] = useState(false);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -104,6 +105,18 @@ function LevelTwo() {
     const clearActiveTimeline = () => {
         timelineTimersRef.current.forEach((timer) => clearTimeout(timer));
         timelineTimersRef.current = [];
+    };
+
+    const handleReset = () => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
+        }
+
+        clearActiveTimeline();
+        setCurrentStage("resting");
+        setLatentVector([...INITIAL_LEVEL_TWO_VECTOR]);
+        setLatentVectorResetKey((currentKey) => currentKey + 1);
     };
 
     // This function gets called EVERY time the user draws/edits your input canvas
@@ -214,6 +227,7 @@ function LevelTwo() {
             <div className={style.latentColumn}>
                 {/* <LatentSpaceSVGWC stage={currentStage}></LatentSpaceSVGWC> */}
                 <LatentVector
+                    key={latentVectorResetKey}
                     stage={currentStage}
                     onValueChange={(index, value) => {
                         setLatentVector((prev) => {
@@ -236,7 +250,7 @@ function LevelTwo() {
         <section className={style.bottomActions}>
             <Button
                 variant="outlined"
-                onClick={() => navigate('/level-1')}
+                onClick={handleReset}
                 style={{color:"#008298", borderColor: "#008298"}}
             >
                 {t('home.actions.reset')}
@@ -269,8 +283,11 @@ function LevelTwo() {
         <Dialog open={showHint} onClose={() => setShowHint(false)} aria-labelledby="level-2-hint-title">
             <DialogTitle id="level-2-hint-title">Hint</DialogTitle>
             <DialogContent>
-                <DialogContentText>
-                    Start by looking at each number as a hidden feature knob. Change only one value at a time and ask: Does the picture get taller, wider, rounder, sharper, brighter, or more stretched? Think of each number like a tiny switch that controls one trait in the image. Small changes can make big differences, so watch carefully and look for patterns.
+                <DialogContentText align="justify" sx={{ mb: 2 }}>
+                    <strong>1.</strong> Start by looking at each number as a hidden feature knob. Change only one value at a time and ask: Does the picture get taller, wider, rounder, sharper, brighter, or more stretched?
+                </DialogContentText>
+                <DialogContentText align="justify" sx={{ mb: 2 }}>
+                    <strong>2.</strong> Think of each number like a tiny switch that controls one trait in the image. Small changes can make big differences, so watch carefully and look for patterns.
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
@@ -301,7 +318,7 @@ function LevelTwo() {
                 />
                 <div className={style.savePreview}>
                     <section className={style.savePreviewSection}>
-                        <h3>Latent vector</h3>
+                        <h3>DNA Code/ Latent vector</h3>
                         <div className={style.latentValues}>
                             {latentVector.map((value, index) => (
                                 <div className={style.latentValue} key={index}>
