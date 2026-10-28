@@ -1,15 +1,16 @@
 import { Stage, Layer, Rect } from 'react-konva';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import style from './style.module.css';
 
 type PixelCanvasProps = {
     rows?: number;
     cols?: number;
     cellSize?: number;
-    grid?: number[][];
+    grid?: number[][] | null;
     initialGrid?: number[][];
     readOnly?: boolean;
     onChange?: (grid: number[][]) => void;
+    injectedStyle?: CSSProperties;
 };
 
 function PixelCanvas({
@@ -20,6 +21,7 @@ function PixelCanvas({
     initialGrid,
     readOnly = false,
     onChange,
+    injectedStyle,
 }: PixelCanvasProps) {
 
     // Create empty grid
@@ -63,7 +65,7 @@ function PixelCanvas({
     };
 
     return (
-        <div className={style.wrapper}>
+        <div className={style.wrapper}  style={injectedStyle}>
             <Stage
                 width={cols * cellSize}
                 height={rows * cellSize}
@@ -91,8 +93,8 @@ function PixelCanvas({
                                     width={cellSize}
                                     height={cellSize}
                                     fill={
-                                        typeof cell === 'number' && cell > 0
-                                            ? `rgba(0,0,0,${Math.max(0, Math.min(1, cell))})`
+                                        typeof cell === 'number' && cell > 0.05
+                                            ? `rgba(0,0,0,${Math.min(1, cell)})`
                                             : isHovered
                                                 ? '#d9eef2'
                                                 : '#e9eef1'

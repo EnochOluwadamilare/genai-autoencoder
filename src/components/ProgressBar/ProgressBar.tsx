@@ -13,7 +13,7 @@ export function ProgressBar({ value, showPercentage=true}: ProgressBarProps) {
 
   return (
     <div className={style.progressSection}>
-      <span>Progress:</span>
+      <span className={style.labelText}>Progress:</span>
       
       {/* Accessibility wrapper for screen readers */}
       <div 
