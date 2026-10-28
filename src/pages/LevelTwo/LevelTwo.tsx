@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { type VAEStage } from '../../components/LatentSpace/LatentSpaceSVG';
 import PixelCanvas from '../../components/PixelCanvas/PixelCanvas';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import DiscoveredImages from '../../components/DiscoveredImages/DiscoveredImages';
+import { useEffect, useMemo, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { LatentVector } from '../../components/LatentSpace/LatentVector/LatentVector';
@@ -100,43 +101,10 @@ function LevelTwo() {
         }
     }, [discoveredShapeIds, progressScore, targetShape.id]);
     
-    // Create refs to keep track of our active timers
-    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const timelineTimersRef = useRef<NodeJS.Timeout[]>([]);
-    // Clear any running animation timeline timers
-    const clearActiveTimeline = () => {
-        timelineTimersRef.current.forEach((timer) => clearTimeout(timer));
-        timelineTimersRef.current = [];
-    };
-
     const handleReset = () => {
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-            debounceTimerRef.current = null;
-        }
-
-        clearActiveTimeline();
         setCurrentStage("resting");
         setLatentVector([...INITIAL_LEVEL_TWO_VECTOR]);
         setLatentVectorResetKey((currentKey) => currentKey + 1);
-    };
-
-    // This function gets called EVERY time the user draws/edits your input canvas
-    const handleInputCanvasEdit = () => {
-        // 1. Instantly reset everything back to "resting" if an animation was playing
-        setCurrentStage("resting");
-        clearActiveTimeline();
-
-        // 2. Clear the previous 2-second countdown timer (The Debounce)
-        if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        }
-
-        // 3. Start a fresh 2-second countdown
-        debounceTimerRef.current = setTimeout(() => {
-            //Run the VAE model
-            runAnimationOrchestration();
-        }, 1000); // 2000 milliseconds = 2 seconds of zero user interaction
     };
 
     useEffect(() => {
@@ -160,36 +128,6 @@ function LevelTwo() {
         };
     }, [isLoaded, latentVector, runLevelTwoInference]);
 
-    // Runs the complete step-by-step VAE animation from start to finish
-    const runAnimationOrchestration = () => {
-        // Stage A: Move to inputting highlighting mode
-        setCurrentStage("inputting");
-
-        // Stage B: Fly left shapes into the center box (Compression)
-        const timer1 = setTimeout(() => {
-        setCurrentStage("compressing");
-        }, 500); // Wait briefly after highlight before flying inward
-
-        // Stage C: The bottleneck cube pulses (Thinking)
-        const timer2 = setTimeout(() => {
-        setCurrentStage("thinking");
-        }, 1700); // 500ms + 1200ms compression animation duration
-
-        // Stage D: Reconstruct shapes out to the right side (Decoder)
-        const timer3 = setTimeout(() => {
-        setCurrentStage("reconstructing");
-        }, 3300); // 1700ms + 800ms thinking pulse duration
-
-        // Stage E: Safely return back to resting state
-        const timer4 = setTimeout(() => {
-        setCurrentStage("resting");
-        // Optional: This is where you reveal your actual output canvas artwork!
-        }, 4300); // 2500ms + 1000ms reconstruction duration + slight buffer
-
-        // Keep track of timers so we can instantly kill them if the user edits the canvas mid-flight
-        timelineTimersRef.current = [timer1, timer2, timer3, timer4];
-    };
-
     return <div>
         {/* NAV BAR */}
         <AppBar onSave={() => {}}></AppBar>
@@ -208,21 +146,20 @@ function LevelTwo() {
                 <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>
                     Discovered: {discoveredShapeIds.length}/{LEVEL_TWO_SHAPE_PRESETS.length} shapes
                 </div>
-                {savedShapes.length > 0 && (
-                    <div className={style.savedShapes}>
-                        Saved shapes: {savedShapes.map((shape) => shape.name).join(', ')}
-                    </div>
-                )}
             </div>
             <ProgressBar value={progressScore} showPercentage={false}/>
         </section>
 
         {/* GAME AREA */}
         <section className={style.gameArea}>
-            {/* INPUT */}
             <div className={style.panelColumn}>
-                <h3>Input</h3>
-                <PixelCanvas injectedStyle={{ pointerEvents: 'none', opacity: 0.4 }} onChange={handleInputCanvasEdit} rows={32} cols={32} cellSize={12} />
+                <h3>Images Discovered</h3>
+                <DiscoveredImages
+                    images={savedShapes.map((shape) => ({
+                        name: shape.name,
+                        grid: shape.outputGrid,
+                    }))}
+                />
             </div>
 
             {/* LATENT */}

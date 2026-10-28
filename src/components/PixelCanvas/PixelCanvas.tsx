@@ -9,6 +9,7 @@ type PixelCanvasProps = {
     grid?: number[][] | null;
     initialGrid?: number[][];
     readOnly?: boolean;
+    gridless?: boolean;
     onChange?: (grid: number[][]) => void;
     injectedStyle?: CSSProperties;
 };
@@ -20,6 +21,7 @@ function PixelCanvas({
     grid: externalGrid,
     initialGrid,
     readOnly = false,
+    gridless = false,
     onChange,
     injectedStyle,
 }: PixelCanvasProps) {
@@ -99,8 +101,8 @@ function PixelCanvas({
                                                 ? '#d9eef2'
                                                 : '#e9eef1'
                                     }
-                                    stroke="#d0d7db"
-                                    strokeWidth={1}
+                                    stroke={gridless ? undefined : '#d0d7db'}
+                                    strokeWidth={gridless ? 0 : 1}
 
                                     onMouseDown={() => {
                                         if (readOnly) return;
