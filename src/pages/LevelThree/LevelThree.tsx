@@ -200,13 +200,8 @@ function LevelThree() {
             <p>
                 <span className={style.goalText}>Goal:</span>
                 {' '}
-                Draw on the Input canvas until your DNA Code/Latent Vector matches this target:
+                Draw on the Input canvas and observe which of your discovered shape it is closest to.
             </p>
-            <div className={style.goalVector} aria-label="Random target latent vector">
-                {target.vector.map((value, index) => (
-                    <span key={index}>D{index + 1}: {value.toFixed(2)}</span>
-                ))}
-            </div>
             <ClarityDisplay metrics={metrics} />
             <ProgressBar value={progressScore} showPercentage={false}/>
         </section>

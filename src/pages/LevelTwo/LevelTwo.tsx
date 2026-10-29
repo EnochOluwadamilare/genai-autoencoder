@@ -140,14 +140,14 @@ function LevelTwo() {
                 {' '}
                 Now can you tweak the Latent Space to see what shapes or numbers the AI has learned, and how it affects the output?<br/>Adjust the DNA Code/ Latent vector until the decoder output makes sense.
             </p>
-            <ClarityDisplay metrics={metrics} />
-            <div style={{ marginTop: '0.75rem', marginBottom: '0.5rem' }}>
+            {/* <ClarityDisplay metrics={metrics} /> */}
+            {/* <div style={{ marginTop: '0.75rem', marginBottom: '0.5rem' }}>
                 <div style={{ fontWeight: 700, color: '#008298' }}>Target shape: {targetShape.label}</div>
                 <div style={{ fontSize: '0.85rem', opacity: 0.8 }}>
                     Discovered: {discoveredShapeIds.length}/{LEVEL_TWO_SHAPE_PRESETS.length} shapes
                 </div>
             </div>
-            <ProgressBar value={progressScore} showPercentage={false}/>
+            <ProgressBar value={progressScore} showPercentage={false}/> */}
         </section>
 
         {/* GAME AREA */}
@@ -213,7 +213,14 @@ function LevelTwo() {
 
             <Button
                 variant="outlined"
-                style={{color:"#008298", borderColor: "#008298"}}
+                style={{ color: "#008298", borderColor: "#008298" }}
+                sx={{
+                    opacity: canSubmit ? 1 : 0.5,
+                    '&.Mui-disabled': {
+                        borderColor: '#a7b7bc',
+                        color: '#6f7d85'
+                    }
+                }}
                 disabled={!canSubmit}
                 onClick={() => navigate('/level-3')}>
                 Submit
