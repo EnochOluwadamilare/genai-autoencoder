@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { LatentSpaceSVG, type VAEStage } from "../../components/LatentSpace/LatentSpaceSVG";
 import PixelCanvas from '../../components/PixelCanvas/PixelCanvas';
 import SampleImages from '../../components/SampleImages/SampleImages';
+import LevelOneQuestionnaire from '../../components/LevelOneQuestionnaire/LevelOneQuestionnaire';
 import { useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
@@ -197,6 +198,8 @@ function LevelOne() {
                     Submit
                 </Button>
             </section>
+
+            <LevelOneQuestionnaire />
 
             <Dialog open={showHint} onClose={() => setShowHint(false)} aria-labelledby="level-1-hint-title">
                 <DialogTitle id="level-1-hint-title">Hint</DialogTitle>
