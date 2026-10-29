@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { LatentSpaceSVG, type VAEStage } from "../../components/LatentSpace/LatentSpaceSVG";
 import PixelCanvas from '../../components/PixelCanvas/PixelCanvas';
+import SampleImages from '../../components/SampleImages/SampleImages';
 import { useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
@@ -120,7 +121,7 @@ function LevelOne() {
                     <span className={style.goalText}>Goal:</span>
                     {' '}
                     Can you guess what the AI learned?
-                    Adjust the Input until the Output picture makes sense.
+                    Adjust the Input until the Output picture makes sense and matches the input.
                 </p>
                 {/* <ClarityProgressBar metrics={clarityMetrics} /> */}
                 <ClarityDisplay metrics={metrics} />
@@ -138,6 +139,7 @@ function LevelOne() {
                         rows={32} 
                         cols={32} 
                         cellSize={12} 
+                        grid={inputGridData} // This is commented because it makes the drawing process blinky and sluggish/sloopy. It needs fxing to be more responsive.
                     />
                 </div>
 
@@ -158,6 +160,8 @@ function LevelOne() {
                     />
                 </div>
             </section>
+
+            <SampleImages onSelect={handleInputCanvasEdit} />
 
             {/* ACTION BUTTONS */}
             <section className={style.bottomActions}>
