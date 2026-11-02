@@ -4534,7 +4534,7 @@ const SvgComponent = ({ stage, latentValues, onValueChange, readOnly = false, ..
           d="M811.485 682.746C810.668 682.493 809.797 681.563 808.684 680.163C809.438 680.485 810.434 681.277 811.485 682.746Z"
           fill="#0F6782"
         />
-        <g id="Group 3">
+        <g id="group2">
           <g id="minus2"
             style={{ cursor: "pointer", opacity: hoveredButton === "minus2" ? 0.8 : 1 }}
             onMouseEnter={() => setHoveredButton("minus2")}
