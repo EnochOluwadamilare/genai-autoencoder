@@ -5,19 +5,28 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { type VAEStage } from '../../components/LatentSpace/LatentSpaceSVG';
 import PixelCanvas from '../../components/PixelCanvas/PixelCanvas';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { LatentVector } from '../../components/LatentSpace/LatentVector/LatentVector';
 import type { ClarityMetrics } from '../../hooks/useVaeInference';
 import {
     getNearestShapePreset,
+    getShapeMatchPercentages,
     getShapeProgressScore,
     INITIAL_LEVEL_TWO_VECTOR,
-    useLevelTwoVaeInference,
+    LEVEL_TWO_SHAPE_PRESETS,
+    useLevelThreeEncoder,
 } from './useVaeInference';
-import DiscoveredImages from '../../components/DiscoveredImages/DiscoveredImages';
+import LevelTwoDiscoveredShapes from '../../components/LevelTwoDiscoveredShapes/LevelTwoDiscoveredShapes';
 import { useProgressStore } from '../../stores/progressStore';
+
+type DiscoveredLevelTwoShape = {
+    id: string;
+    name: string;
+    vector: number[];
+    outputGrid: number[][] | null;
+};
 
 function LevelThree() {
     const { t } = useTranslation('image_adv');
@@ -25,16 +34,57 @@ function LevelThree() {
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
     const [latentVector, setLatentVector] = useState<number[]>(INITIAL_LEVEL_TWO_VECTOR);
     const [latentVectorResetKey, setLatentVectorResetKey] = useState(0);
-    const [outputGridData, setOutputGridData] = useState<number[][] | null>(null);
+    const [inputCanvasResetKey, setInputCanvasResetKey] = useState(0);
+    const [inputGrid, setInputGrid] = useState<number[][] | null>(null);
+    const [hasEncodedInput, setHasEncodedInput] = useState(false);
     const [showHint, setShowHint] = useState(false);
-    const savedShapes = useProgressStore((state) => state.levelTwo.savedShapes);
+    const latestInputEditRef = useRef(0);
     const levelTwoDiscoveredShapeIds = useProgressStore((state) => state.levelTwo.discoveredShapeIds);
+    const savedShapes = useProgressStore((state) => state.levelTwo.savedShapes);
     const [levelThreeDiscoveredShapeIds, setLevelThreeDiscoveredShapeIds] = useState<string[]>([]);
     const discoveredShapeIds = useMemo(
         () => [...new Set([...levelTwoDiscoveredShapeIds, ...levelThreeDiscoveredShapeIds])],
         [levelThreeDiscoveredShapeIds, levelTwoDiscoveredShapeIds],
     );
-    const { runLevelTwoInference, isLoaded } = useLevelTwoVaeInference();
+    const { encodeInputGrid, isLoaded: isEncoderLoaded } = useLevelThreeEncoder();
+    const discoveredShapes = useMemo<DiscoveredLevelTwoShape[]>(
+        () => levelTwoDiscoveredShapeIds.reduce<DiscoveredLevelTwoShape[]>((shapes, id) => {
+            const savedShape = savedShapes.find((shape) => shape.id === id);
+            if (savedShape) {
+                shapes.push(savedShape);
+                return shapes;
+            }
+
+            const preset = LEVEL_TWO_SHAPE_PRESETS.find((shape) => shape.id === id);
+            if (preset) {
+                shapes.push({
+                    id: preset.id,
+                    name: preset.label,
+                    vector: preset.vector,
+                    outputGrid: null,
+                });
+            }
+
+            return shapes;
+        }, []),
+        [levelTwoDiscoveredShapeIds, savedShapes],
+    );
+    const shapeMatches = useMemo(
+        () => {
+            const percentages = hasEncodedInput
+                ? getShapeMatchPercentages(latentVector, discoveredShapes)
+                : {};
+            return discoveredShapes
+            .map((shape) => ({
+                id: shape.id,
+                label: shape.name,
+                percentage: percentages[shape.id] ?? null,
+                grid: shape.outputGrid,
+            }))
+            .sort((left, right) => (right.percentage ?? -1) - (left.percentage ?? -1));
+        },
+        [discoveredShapes, hasEncodedInput, latentVector],
+    );
 
     const targetShape = useMemo(() => getNearestShapePreset(latentVector), [latentVector]);
 
@@ -77,79 +127,74 @@ function LevelThree() {
         }
 
         clearActiveTimeline();
+        latestInputEditRef.current += 1;
+        setInputGrid(null);
+        setHasEncodedInput(false);
+        setInputCanvasResetKey((currentKey) => currentKey + 1);
         setCurrentStage("resting");
         setLatentVector([...INITIAL_LEVEL_TWO_VECTOR]);
         setLatentVectorResetKey((currentKey) => currentKey + 1);
     };
 
     // This function gets called EVERY time the user draws/edits your input canvas
-    const handleInputCanvasEdit = () => {
-        // 1. Instantly reset everything back to "resting" if an animation was playing
+    const handleInputCanvasEdit = (inputGrid: number[][]) => {
+        latestInputEditRef.current += 1;
+        setInputGrid(inputGrid);
+        setHasEncodedInput(false);
         setCurrentStage("resting");
         clearActiveTimeline();
-
-        // 2. Clear the previous 2-second countdown timer (The Debounce)
-        if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        }
-
-        // 3. Start a fresh 2-second countdown
-        debounceTimerRef.current = setTimeout(() => {
-            //Run the VAE model
-            runAnimationOrchestration();
-        }, 1000); // 2000 milliseconds = 2 seconds of zero user interaction
     };
 
+    const runAnimationOrchestration = useCallback(() => {
+        setCurrentStage("inputting");
+
+        const timer1 = setTimeout(() => {
+            setCurrentStage("compressing");
+        }, 500);
+
+        const timer2 = setTimeout(() => {
+            setCurrentStage("thinking");
+        }, 1700);
+
+        const timer3 = setTimeout(() => {
+            setCurrentStage("reconstructing");
+        }, 3300);
+
+        const timer4 = setTimeout(() => {
+            setCurrentStage("resting");
+        }, 4300);
+
+        timelineTimersRef.current = [timer1, timer2, timer3, timer4];
+    }, []);
+
     useEffect(() => {
-        if (!isLoaded) {
+        if (!inputGrid || !isEncoderLoaded) {
             return;
         }
 
+        const editId = latestInputEditRef.current;
         let isCancelled = false;
-
-        const runDecoder = async () => {
-            const result = await runLevelTwoInference(latentVector);
-            if (!isCancelled && result) {
-                setOutputGridData(result.outputMatrix);
+        const debounceTimer = setTimeout(async () => {
+            runAnimationOrchestration();
+            const encodedVector = await encodeInputGrid(inputGrid);
+            if (!isCancelled && encodedVector && editId === latestInputEditRef.current) {
+                setLatentVector(encodedVector);
+                setHasEncodedInput(true);
             }
-        };
-
-        runDecoder();
+        }, 500);
+        debounceTimerRef.current = debounceTimer;
 
         return () => {
             isCancelled = true;
+            clearTimeout(debounceTimer);
         };
-    }, [isLoaded, latentVector, runLevelTwoInference]);
+    }, [encodeInputGrid, inputGrid, isEncoderLoaded, runAnimationOrchestration]);
 
-    // Runs the complete step-by-step VAE animation from start to finish
-    const runAnimationOrchestration = () => {
-        // Stage A: Move to inputting highlighting mode
-        setCurrentStage("inputting");
-
-        // Stage B: Fly left shapes into the center box (Compression)
-        const timer1 = setTimeout(() => {
-        setCurrentStage("compressing");
-        }, 500); // Wait briefly after highlight before flying inward
-
-        // Stage C: The bottleneck cube pulses (Thinking)
-        const timer2 = setTimeout(() => {
-        setCurrentStage("thinking");
-        }, 1700); // 500ms + 1200ms compression animation duration
-
-        // Stage D: Reconstruct shapes out to the right side (Decoder)
-        const timer3 = setTimeout(() => {
-        setCurrentStage("reconstructing");
-        }, 3300); // 1700ms + 800ms thinking pulse duration
-
-        // Stage E: Safely return back to resting state
-        const timer4 = setTimeout(() => {
-        setCurrentStage("resting");
-        // Optional: This is where you reveal your actual output canvas artwork!
-        }, 4300); // 2500ms + 1000ms reconstruction duration + slight buffer
-
-        // Keep track of timers so we can instantly kill them if the user edits the canvas mid-flight
-        timelineTimersRef.current = [timer1, timer2, timer3, timer4];
-    };
+    useEffect(() => () => {
+        latestInputEditRef.current += 1;
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+        timelineTimersRef.current.forEach((timer) => clearTimeout(timer));
+    }, []);
 
     return <div>
         {/* NAV BAR */}
@@ -172,15 +217,23 @@ function LevelThree() {
             {/* INPUT */}
             <div className={style.panelColumn}>
                 <h3>Input</h3>
-                <PixelCanvas onChange={handleInputCanvasEdit} rows={32} cols={32} cellSize={12} />
+                <PixelCanvas
+                    key={inputCanvasResetKey}
+                    onChange={handleInputCanvasEdit}
+                    rows={32}
+                    cols={32}
+                    cellSize={12}
+                />
             </div>
 
             {/* LATENT */}
             <div className={style.latentColumn}>
+                {!isEncoderLoaded && <p role="status">Loading the input encoder…</p>}
                 {/* <LatentSpaceSVGWC stage={currentStage}></LatentSpaceSVGWC> */}
                 <LatentVector
                     key={latentVectorResetKey}
                     stage={currentStage}
+                    latentValues={latentVector}
                     onValueChange={(index, value) => {
                         const nextVector = [...latentVector];
                         nextVector[index] = Number.isFinite(value) ? Number(value.toFixed(1)) : 0;
@@ -201,21 +254,10 @@ function LevelThree() {
                 />
             </div>
 
-            {/* OUTPUT */}
             <div className={style.panelColumn}>
-                <h3>Output {isLoaded ? ' ' : '(Loading Models...)'}</h3>
-                <PixelCanvas rows={32} cols={32} cellSize={12} readOnly grid={outputGridData} injectedStyle={{ pointerEvents: 'none', opacity: 0.4 }} />
+                <h3>Classification</h3>
+                <LevelTwoDiscoveredShapes shapes={shapeMatches} />
             </div>
-        </section>
-
-        <section className={style.panelColumn}>
-            <h3>Shapes Discovered in Level 2</h3>
-            <DiscoveredImages
-                images={savedShapes.map((shape) => ({
-                    name: shape.name,
-                    grid: shape.outputGrid,
-                }))}
-            />
         </section>
 
         {/* ACTION BUTTONS */}

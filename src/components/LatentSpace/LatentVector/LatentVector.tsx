@@ -7,33 +7,24 @@ export type VAEStage = "resting" | "inputting" | "compressing" | "thinking" | "r
 
 interface LatentVectorProps extends SVGProps<SVGSVGElement> {
   stage: VAEStage;
+  latentValues?: number[];
   onValueChange?: (index: number, value: number) => void;
 }
 
-const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => {
+const SvgComponent = ({ stage, latentValues, onValueChange, ...props }: LatentVectorProps) => {
     const [hoveredButton, setHoveredButton] = React.useState<string | null>(null);
-    const [textValues, setTextValues] = React.useState<Record<string, number>>({
-      text1: 0,
-      text2: 0,
-      text3: 0,
-      text4: 0,
-      text5: 0,
-      text6: 0,
-      text7: 0,
-      text8: 0,
-      text9: 0,
-      text10: 0,
-      text11: 0,
-      text12: 0,
-      text13: 0,
-      text14: 0,
-      text15: 0,
-      text16: 0,
-    })
+    const [localTextValues, setLocalTextValues] = React.useState<Record<string, number>>(() =>
+      Object.fromEntries(Array.from({ length: 16 }, (_, index) => [
+        `text${index + 1}`,
+        latentValues?.[index] ?? 0,
+      ])),
+    );
+    const textValues = latentValues
+      ? Object.fromEntries(latentValues.map((value, index) => [`text${index + 1}`, Number(value.toFixed(1))]))
+      : localTextValues;
 
     const handleButtonClick = (groupKey: string, delta: number) => {
-      setTextValues((prev) => {
-        const currentValue = Number(prev[groupKey] ?? 0)
+        const currentValue = Number(textValues[groupKey] ?? 0)
         const nextValue = Number((currentValue + delta).toFixed(1))
 
         if (onValueChange) {
@@ -41,26 +32,34 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
           onValueChange(index, nextValue)
         }
 
-        return {
-          ...prev,
+        if (!latentValues) {
+          setLocalTextValues((previousValues) => ({
+            ...previousValues,
           [groupKey]: nextValue,
+          }))
         }
-      })
     };
 
     const handleInputChange = (groupKey: string, value: number) => {
       const nextValue = Number.isFinite(value) ? Number(value.toFixed(1)) : 0
 
-      setTextValues((prev) => ({
-        ...prev,
-        [groupKey]: nextValue,
-      }))
+      if (!latentValues) {
+        setLocalTextValues((previousValues) => ({
+          ...previousValues,
+          [groupKey]: nextValue,
+        }))
+      }
 
       if (onValueChange) {
         const index = Number(groupKey.replace(/\D/g, "")) - 1
         onValueChange(index, nextValue)
       }
     }
+
+    const handleButtonClickRef = React.useRef(handleButtonClick)
+    React.useEffect(() => {
+      handleButtonClickRef.current = handleButtonClick
+    })
 
     const holdIntervalRef = React.useRef<number | null>(null)
 
@@ -75,7 +74,7 @@ const SvgComponent = ({ stage, onValueChange, ...props }: LatentVectorProps) => 
       stopHold()
       // handleButtonClick(groupKey, delta)
       holdIntervalRef.current = window.setInterval(() => {
-        handleButtonClick(groupKey, delta)
+        handleButtonClickRef.current(groupKey, delta)
       }, 350 /*Speed of increment/decrement when holding down the button*/)
     }, [stopHold])
 

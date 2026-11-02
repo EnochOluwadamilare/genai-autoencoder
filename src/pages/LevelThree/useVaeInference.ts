@@ -14,6 +14,11 @@ export interface LevelTwoShapePreset {
   vector: number[];
 }
 
+export interface ShapeVectorCandidate {
+  id: string;
+  vector: number[];
+}
+
 export const INITIAL_LEVEL_TWO_VECTOR = Array.from({ length: 16 }, () => 0);
 
 export const LEVEL_TWO_SHAPE_PRESETS: LevelTwoShapePreset[] = [
@@ -91,6 +96,35 @@ export function getShapeProgressScore(currentVector: number[], targetVector: num
   return Math.round(clamp(percent, 0, 100));
 }
 
+export function getShapeMatchPercentages(
+  currentVector: number[],
+  candidates: ShapeVectorCandidate[],
+): Record<string, number> {
+  if (candidates.length === 0) {
+    return {};
+  }
+
+  const distances = candidates.map(({ vector }) => {
+    let distanceSquared = 0;
+    for (let index = 0; index < Math.max(currentVector.length, vector.length); index += 1) {
+      const delta = (currentVector[index] ?? 0) - (vector[index] ?? 0);
+      distanceSquared += delta * delta;
+    }
+    return Math.sqrt(distanceSquared);
+  });
+  const minimumDistance = Math.min(...distances);
+  const weights = distances.map((distance) => 1 / Math.max(distance, 0.000001));
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  const roundedPercentages = weights.map((weight) => Math.round((weight / totalWeight) * 100));
+  const closestIndex = distances.indexOf(minimumDistance);
+  const roundedTotal = roundedPercentages.reduce((sum, percentage) => sum + percentage, 0);
+  roundedPercentages[closestIndex] += 100 - roundedTotal;
+
+  return Object.fromEntries(
+    candidates.map(({ id }, index) => [id, roundedPercentages[index]]),
+  );
+}
+
 export function getNearestShapePreset(currentVector: number[]): LevelTwoShapePreset {
   let nearestShape = LEVEL_TWO_SHAPE_PRESETS[0];
   let nearestDistance = Number.POSITIVE_INFINITY;
@@ -114,6 +148,77 @@ export function getNearestShapePreset(currentVector: number[]): LevelTwoShapePre
   }
 
   return nearestShape;
+}
+
+export function useLevelThreeEncoder() {
+  const encoderRef = useRef<ort.InferenceSession | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadEncoderModel() {
+      try {
+        const [modelResponse, dataResponse] = await Promise.all([
+          fetch('/models/encoder.onnx'),
+          fetch('/models/encoder.onnx.data'),
+        ]);
+        const [modelBuffer, dataBuffer] = await Promise.all([
+          modelResponse.arrayBuffer(),
+          dataResponse.arrayBuffer(),
+        ]);
+
+        if (!isMounted) return;
+
+        encoderRef.current = await ort.InferenceSession.create(
+          new Uint8Array(modelBuffer),
+          {
+            externalData: [
+              {
+                data: new Uint8Array(dataBuffer),
+                path: 'encoder.onnx.data',
+              },
+            ],
+          },
+        );
+
+        if (isMounted) setIsLoaded(true);
+      } catch (error) {
+        console.error('Level 3 encoder model failed to load:', error);
+      }
+    }
+
+    loadEncoderModel();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const encodeInputGrid = useCallback(async (inputGrid: number[][]): Promise<number[] | null> => {
+    if (!encoderRef.current) {
+      return null;
+    }
+
+    try {
+      const flattened = new Float32Array(32 * 32);
+      for (let row = 0; row < 32; row += 1) {
+        for (let column = 0; column < 32; column += 1) {
+          flattened[row * 32 + column] = 1 - (inputGrid[row]?.[column] ?? 0);
+        }
+      }
+
+      const inputTensor = new ort.Tensor('float32', flattened, [1, 1, 32, 32]);
+      const encoderResults = await encoderRef.current.run({ input_image: inputTensor });
+
+      return Array.from(encoderResults.mu.data as Float32Array);
+    } catch (error) {
+      console.error('Level 3 input encoding error:', error);
+      return null;
+    }
+  }, []);
+
+  return { encodeInputGrid, isLoaded };
 }
 
 export function useLevelTwoVaeInference() {
