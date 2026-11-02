@@ -9,9 +9,10 @@ interface LatentVectorProps extends SVGProps<SVGSVGElement> {
   stage: VAEStage;
   latentValues?: number[];
   onValueChange?: (index: number, value: number) => void;
+  readOnly?: boolean;
 }
 
-const SvgComponent = ({ stage, latentValues, onValueChange, ...props }: LatentVectorProps) => {
+const SvgComponent = ({ stage, latentValues, onValueChange, readOnly = false, ...props }: LatentVectorProps) => {
     const [hoveredButton, setHoveredButton] = React.useState<string | null>(null);
     const [localTextValues, setLocalTextValues] = React.useState<Record<string, number>>(() =>
       Object.fromEntries(Array.from({ length: 16 }, (_, index) => [
@@ -134,6 +135,8 @@ const SvgComponent = ({ stage, latentValues, onValueChange, ...props }: LatentVe
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
+      aria-disabled={readOnly || undefined}
+      style={{ ...props.style, pointerEvents: readOnly ? 'none' : props.style?.pointerEvents }}
     >
       <g id="LatentSpaceWLV" clipPath="url(#clip0_227_4895)">
         <rect width={1242} height={1674} fill="white" />

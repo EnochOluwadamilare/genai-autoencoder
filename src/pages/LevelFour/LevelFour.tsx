@@ -1,161 +1,189 @@
-import { LangSelect, PercentageBar } from '@genai-fi/base';
 import { Button } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
 import style from './style.module.css';
 import AppBar from '../../components/AppBar';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { color } from 'framer-motion';
-import {LatentSpaceSVG, type VAEStage} from "../../components/LatentSpace/LatentSpaceSVG";
+import { useEffect, useMemo, useState } from 'react';
+import { LatentVector } from '../../components/LatentSpace/LatentVector/LatentVector';
+import type { VAEStage } from '../../components/LatentSpace/LatentSpaceSVG';
 import PixelCanvas from '../../components/PixelCanvas/PixelCanvas';
-import { useRef, useState } from 'react';
-import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
-import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
-import { LatentSpaceSVGWC } from '../../components/LatentSpace/LatentSpaceSVGWC';
-import type { ClarityMetrics } from '../../hooks/useVaeInference';
-import DiscoveredImages from '../../components/DiscoveredImages/DiscoveredImages';
+import DiscoveredShapeInputSliders, {
+    type DiscoveredShapeSliderItem,
+} from '../../components/DiscoveredShapeInputSliders/DiscoveredShapeInputSliders';
 import { useProgressStore } from '../../stores/progressStore';
+import { LEVEL_TWO_SHAPE_PRESETS, useLevelTwoVaeInference } from '../LevelTwo/useVaeInference';
+import { getShapeCompositionVector } from './shapeComposition';
 
 function LevelFour() {
     const { t } = useTranslation('image_adv');
     const navigate = useNavigate();
+    const discoveredShapeIds = useProgressStore((state) => state.levelTwo.discoveredShapeIds);
     const savedShapes = useProgressStore((state) => state.levelTwo.savedShapes);
-    const [aiClarityScore, setAiClarityScore] = useState<number>(3.4);
-    const [progressScore, setProgressScore] = useState<number>(40.4);
-    const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
-    const [metrics, setMetrics] = useState<ClarityMetrics | null>(null);
-    
-    // Create refs to keep track of our active timers
-    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const timelineTimersRef = useRef<NodeJS.Timeout[]>([]);
-    // Clear any running animation timeline timers
-    const clearActiveTimeline = () => {
-        timelineTimersRef.current.forEach((timer) => clearTimeout(timer));
-        timelineTimersRef.current = [];
+    const [percentages, setPercentages] = useState<Record<string, number>>({});
+    const [currentStage, setCurrentStage] = useState<VAEStage>('resting');
+    const [output, setOutput] = useState<{ vectorKey: string; grid: number[][] } | null>(null);
+    const [inferenceError, setInferenceError] = useState<string | null>(null);
+    const { runLevelTwoInference, isLoaded } = useLevelTwoVaeInference();
+
+    const discoveredShapes = useMemo<DiscoveredShapeSliderItem[]>(
+        () => discoveredShapeIds.reduce<DiscoveredShapeSliderItem[]>((shapes, id) => {
+            const savedShape = savedShapes.find((shape) => shape.id === id);
+            if (savedShape) {
+                shapes.push(savedShape);
+                return shapes;
+            }
+
+            const preset = LEVEL_TWO_SHAPE_PRESETS.find((shape) => shape.id === id);
+            if (preset) {
+                shapes.push({
+                    id: preset.id,
+                    name: preset.label,
+                    vector: preset.vector,
+                    outputGrid: null,
+                });
+            }
+
+            return shapes;
+        }, []),
+        [discoveredShapeIds, savedShapes],
+    );
+
+    const compositionVector = useMemo(
+        () => getShapeCompositionVector(discoveredShapes, percentages),
+        [discoveredShapes, percentages],
+    );
+    const vectorKey = compositionVector?.join(',') ?? '';
+
+    const handlePercentageChange = (shapeId: string, percentage: number) => {
+        setPercentages((currentPercentages) => ({
+            ...currentPercentages,
+            [shapeId]: percentage,
+        }));
+        setInferenceError(null);
+        setCurrentStage('thinking');
     };
 
-    // This function gets called EVERY time the user draws/edits your input canvas
-    const handleInputCanvasEdit = () => {
-        // 1. Instantly reset everything back to "resting" if an animation was playing
-        setCurrentStage("resting");
-        clearActiveTimeline();
-
-        // 2. Clear the previous 2-second countdown timer (The Debounce)
-        if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+    useEffect(() => {
+        if (!compositionVector || !isLoaded) {
+            return;
         }
 
-        // 3. Start a fresh 2-second countdown
-        debounceTimerRef.current = setTimeout(() => {
-            //Run the VAE model
-            runAnimationOrchestration();
-        }, 1000); // 2000 milliseconds = 2 seconds of zero user interaction
+        let isCancelled = false;
+        let stageTimer: ReturnType<typeof setTimeout> | undefined;
+
+        const decodeComposition = async () => {
+            const result = await runLevelTwoInference(compositionVector);
+            if (isCancelled) return;
+
+            if (!result) {
+                setInferenceError('The shape combination could not be generated.');
+                setCurrentStage('resting');
+                return;
+            }
+
+            setOutput({ vectorKey, grid: result.outputMatrix });
+            setInferenceError(null);
+            setCurrentStage('reconstructing');
+            stageTimer = setTimeout(() => setCurrentStage('resting'), 1200);
+        };
+
+        decodeComposition();
+
+        return () => {
+            isCancelled = true;
+            if (stageTimer) clearTimeout(stageTimer);
+        };
+    }, [compositionVector, isLoaded, runLevelTwoInference, vectorKey]);
+
+    const handleReset = () => {
+        setPercentages({});
+        setOutput(null);
+        setInferenceError(null);
+        setCurrentStage('resting');
     };
 
-    // Runs the complete step-by-step VAE animation from start to finish
-    const runAnimationOrchestration = () => {
-        // Stage A: Move to inputting highlighting mode
-        setCurrentStage("inputting");
+    const currentOutput = output?.vectorKey === vectorKey ? output.grid : null;
 
-        // Stage B: Fly left shapes into the center box (Compression)
-        const timer1 = setTimeout(() => {
-        setCurrentStage("compressing");
-        }, 500); // Wait briefly after highlight before flying inward
+    return (
+        <div>
+            <AppBar onSave={() => {}} />
 
-        // Stage C: The bottleneck cube pulses (Thinking)
-        const timer2 = setTimeout(() => {
-        setCurrentStage("thinking");
-        }, 1700); // 500ms + 1200ms compression animation duration
+            <section className={style.levelIntro}>
+                <h2>Level 4</h2>
+                <p>
+                    <span className={style.goalText}>Goal:</span>
+                    {' '}
+                    Choose the proportions of your discovered shapes to create a combination.
+                </p>
+            </section>
 
-        // Stage D: Reconstruct shapes out to the right side (Decoder)
-        const timer3 = setTimeout(() => {
-        setCurrentStage("reconstructing");
-        }, 3300); // 1700ms + 800ms thinking pulse duration
+            <section className={style.gameArea}>
+                <div className={style.panelColumn}>
+                    <h3>Input</h3>
+                    <DiscoveredShapeInputSliders
+                        shapes={discoveredShapes}
+                        percentages={percentages}
+                        onPercentageChange={handlePercentageChange}
+                    />
+                </div>
 
-        // Stage E: Safely return back to resting state
-        const timer4 = setTimeout(() => {
-        setCurrentStage("resting");
-        // Optional: This is where you reveal your actual output canvas artwork!
-        }, 4300); // 2500ms + 1000ms reconstruction duration + slight buffer
+                <div className={style.latentColumn}>
+                    <h3>Latent vector</h3>
+                    <LatentVector
+                        stage={currentStage}
+                        latentValues={compositionVector ?? Array.from({ length: 16 }, () => 0)}
+                        readOnly
+                        width="320px"
+                        height="420px"
+                    />
+                </div>
 
-        // Keep track of timers so we can instantly kill them if the user edits the canvas mid-flight
-        timelineTimersRef.current = [timer1, timer2, timer3, timer4];
-    };
+                <div className={style.panelColumn}>
+                    <h3>Output</h3>
+                    {isLoaded ? (
+                        <PixelCanvas
+                            rows={32}
+                            cols={32}
+                            cellSize={12}
+                            readOnly
+                            grid={currentOutput}
+                        />
+                    ) : (
+                        <p role="status">Loading decoder…</p>
+                    )}
+                    {compositionVector && !currentOutput && isLoaded && (
+                        <p role="status">Generating shape combination…</p>
+                    )}
+                    {inferenceError && <p role="alert">{inferenceError}</p>}
+                </div>
+            </section>
 
-    return <div>
-        {/* NAV BAR */}
-        <AppBar onSave={() => {}}></AppBar>
-
-        {/* TITLE AREA */}
-        <section className={style.levelIntro}>
-            <h2>Level 4</h2>
-            <p>
-                <span className={style.goalText}>Goal:</span>
-                {' '}
-                Now can you draw on the Encoder until the Latent Vector gives 0,0,1 in the Latent Space.
-            </p>
-            <ClarityDisplay metrics={metrics} />
-            {/* <PercentageBar colour={'blue'} value={26}></PercentageBar> */}
-            <ProgressBar value={progressScore} showPercentage={false}/>
-        </section>
-
-        {/* GAME AREA */}
-        <section className={style.gameArea}>
-            {/* INPUT */}
-            <div className={style.panelColumn}>
-                <h3>Input</h3>
-                <PixelCanvas onChange={handleInputCanvasEdit} rows={32} cols={32} cellSize={12} />
-                {/* <div className={style.canvasPanel}></div> */}
-            </div>
-
-            {/* LATENT */}
-            <div className={style.latentColumn}>
-                <LatentSpaceSVGWC stage={currentStage}></LatentSpaceSVGWC>
-            </div>
-
-            {/* OUTPUT */}
-            <div className={style.panelColumn}>
-                <h3>Output</h3>
-                <PixelCanvas rows={32} cols={32} cellSize={12} readOnly />
-            </div>
-        </section>
-
-        <section className={style.panelColumn}>
-            <h3>Shapes Discovered in Level 2</h3>
-            <DiscoveredImages
-                images={savedShapes.map((shape) => ({
-                    name: shape.name,
-                    grid: shape.outputGrid,
-                }))}
-            />
-        </section>
-
-        {/* ACTION BUTTONS */}
-        <section className={style.bottomActions}>
-            <Button
-                variant="outlined"
-                onClick={() => navigate('/level-2')}
-                style={{color:"#008298", borderColor: "#008298"}}
-            >
-                {t('home.actions.reset')}
-            </Button>
-
-            <Button
-                variant="outlined"
-                style={{color:"#008298", borderColor: "#008298"}}
-                // onClick={runSimulation}
+            <section className={style.bottomActions}>
+                <Button
+                    variant="outlined"
+                    onClick={handleReset}
+                    style={{ color: '#008298', borderColor: '#008298' }}
                 >
-                Hint 👁️
-            </Button>
+                    {t('home.actions.reset')}
+                </Button>
 
-            <Button
-                variant="outlined"
-                style={{color:"#008298", borderColor: "#008298"}}
-                onClick={() => navigate('/level-4')}>
-                Submit
-            </Button>
-        </section>
-    </div>;
+                <Button
+                    variant="outlined"
+                    style={{ color: '#008298', borderColor: '#008298' }}
+                >
+                    Hint 👁️
+                </Button>
+
+                <Button
+                    variant="outlined"
+                    style={{ color: '#008298', borderColor: '#008298' }}
+                    onClick={() => navigate('/level-4')}
+                >
+                    Submit
+                </Button>
+            </section>
+        </div>
+    );
 }
 
 export default LevelFour;
