@@ -1,0 +1,33 @@
+.sampleImages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 1rem;
+}
+
+.sampleImages h3 {
+    margin: 0.25rem;
+}
+
+.sampleRow {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.sampleButton {
+    display: block;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.sampleButton:focus-visible {
+    outline: 2px solid #008298;
+    outline-offset: 3px;
+}

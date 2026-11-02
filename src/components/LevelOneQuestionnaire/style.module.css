@@ -1,0 +1,72 @@
+.questionnaire {
+    width: min(100% - 2rem, 640px);
+    margin: 0.5rem auto 1.5rem;
+    padding: 1rem;
+    border: 1px solid #008298;
+    border-radius: 8px;
+    color: #e7edf2;
+    background: #202329;
+}
+
+.questionnaire h2 {
+    margin: 0 0 0.75rem;
+    text-align: center;
+    font-size: 1.25rem;
+}
+
+.questionnaireContent {
+    position: relative;
+    min-height: 3.5rem;
+}
+
+.questions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: filter 180ms ease;
+}
+
+.question {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.question select {
+    min-width: 220px;
+    padding: 0.5rem;
+    border: 1px solid #008298;
+    border-radius: 4px;
+    color: inherit;
+    background: #17191e;
+    font: inherit;
+}
+
+.questions[aria-hidden='true'] {
+    filter: blur(3px);
+}
+
+.correctOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #62d6ab;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 0 2px 8px #17191e;
+}
+
+@media (max-width: 600px) {
+    .question {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .question select {
+        width: 100%;
+    }
+}

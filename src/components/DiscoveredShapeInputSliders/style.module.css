@@ -1,0 +1,105 @@
+.container {
+    box-sizing: border-box;
+    display: flex;
+    width: 392px;
+    max-width: calc(100% - 1rem);
+    height: 392px;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 0 auto 1rem;
+    padding: 1rem;
+    border: 2px solid #008298;
+    border-radius: 8px;
+    background: #f4f6f7;
+}
+
+.container h3 {
+    flex: 0 0 auto;
+    margin: 0 0 0.75rem;
+    color: #174b55;
+    text-align: center;
+}
+
+.shapeList {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.shapeRow {
+    display: grid;
+    min-height: 64px;
+    flex: 0 0 auto;
+    grid-template-columns: minmax(100px, 1fr) minmax(70px, 0.8fr) 48px;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    background: white;
+    color: #174b55;
+}
+
+.sliderControl {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sliderControl input {
+    width: 100%;
+    margin: 0;
+    accent-color: #008298;
+    cursor: pointer;
+}
+
+.percentage {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.shapeLabel {
+    overflow-wrap: anywhere;
+    font-weight: 600;
+}
+
+.preview {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    overflow: hidden;
+}
+
+.noImage {
+    font-size: 0.6rem;
+    text-align: center;
+}
+
+.emptyState {
+    display: grid;
+    flex: 1;
+    margin: 0;
+    place-items: center;
+    color: #174b55;
+    text-align: center;
+}
+
+@media (max-width: 560px) {
+    .shapeRow {
+        grid-template-columns: minmax(90px, 1fr) minmax(60px, 0.8fr) 40px;
+        gap: 0.5rem;
+    }
+
+    .preview {
+        width: 40px;
+        height: 40px;
+    }
+}

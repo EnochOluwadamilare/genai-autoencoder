@@ -70,7 +70,6 @@
     justify-content: center;
 }
 
-
 .gameArea {
     display: flex;
     justify-content: center;
@@ -180,12 +179,51 @@ h3 {
     flex-wrap: wrap;
 }
 
+.savedShapes {
+    font-size: 0.85rem;
+    color: #008298;
+}
+
+.savePreview {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+    padding-top: 1rem;
+}
+
+.savePreviewSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+}
+
+.latentValues {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(48px, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.latentValue {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.35rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    background: #eef6f7;
+    color: #174b55;
+    font-size: 0.875rem;
+}
+
 /* TABLET */
 
 @media only screen and (max-width: 1100px) {
     .gameArea {
         flex-direction: column;
     }
+
     .canvasPanel,
     .outputPanel {
         width: 340px;
@@ -202,22 +240,31 @@ h3 {
         gap: 1rem;
         padding: 1rem;
     }
+
     .topCenter {
         width: 100%;
         order: 3;
     }
+
     .canvasPanel,
     .outputPanel {
         width: 92vw;
         height: 92vw;
     }
+
     .latentImage {
         width: 220px;
     }
+
     .bottomActions {
         flex-direction: column;
         align-items: center;
     }
+
+    .savePreview {
+        grid-template-columns: 1fr;
+    }
+
     .allButton {
         width: 100%;
         max-width: 320px;

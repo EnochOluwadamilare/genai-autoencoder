@@ -4,6 +4,11 @@
     gap: 1rem;
 }
 
+.labelText {
+    color: #008298;
+    font-weight: bold;
+}
+
 .progressBar {
     width: 220px;
     height: 20px;

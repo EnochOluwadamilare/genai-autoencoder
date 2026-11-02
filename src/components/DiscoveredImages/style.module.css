@@ -1,0 +1,50 @@
+.gallery {
+    box-sizing: border-box;
+    width: 392px;
+    height: 392px;
+    overflow-y: auto;
+    padding: 12px;
+    border: 4px solid #008298;
+    border-radius: 8px;
+    background: #f4f6f7;
+}
+
+.imageList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.imageCard {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 4px;
+    border-radius: 6px;
+    background: white;
+    color: #174b55;
+    text-align: center;
+}
+
+.imageLabel {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.emptyState {
+    display: grid;
+    height: 100%;
+    margin: 0;
+    place-items: center;
+    color: #174b55;
+    text-align: center;
+}
