@@ -18,7 +18,7 @@ import {
     LEVEL_TWO_SHAPE_PRESETS,
     useLevelThreeEncoder,
 } from './useVaeInference';
-import LevelTwoDiscoveredShapes from '../../components/LevelTwoDiscoveredShapes/LevelTwoDiscoveredShapes';
+import DiscoveredShapesClassification from '../../components/DiscoveredShapesClassification/DiscoveredShapesClassification';
 import { useProgressStore } from '../../stores/progressStore';
 
 type DiscoveredLevelTwoShape = {
@@ -256,7 +256,7 @@ function LevelThree() {
 
             <div className={style.panelColumn}>
                 <h3>Classification</h3>
-                <LevelTwoDiscoveredShapes shapes={shapeMatches} />
+                <DiscoveredShapesClassification shapes={shapeMatches} />
             </div>
         </section>
 

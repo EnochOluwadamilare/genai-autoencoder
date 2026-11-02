@@ -8,14 +8,14 @@ export type DiscoveredShapeMatch = {
     grid: number[][] | null;
 };
 
-type LevelTwoDiscoveredShapesProps = {
+type DiscoveredShapesClassificationProps = {
     shapes: DiscoveredShapeMatch[];
 };
 
-function LevelTwoDiscoveredShapes({ shapes }: LevelTwoDiscoveredShapesProps) {
+function DiscoveredShapesClassification({ shapes }: DiscoveredShapesClassificationProps) {
     return (
-        <section className={style.container} aria-labelledby="level-two-discovered-shapes-title">
-            <h3 id="level-two-discovered-shapes-title">Shapes discovered in Level 2</h3>
+        <section className={style.container} aria-labelledby="discovered-shapes-classification-title">
+            <h3 id="discovered-shapes-classification-title">Shapes discovered in Level 2</h3>
             {shapes.length > 0 ? (
                 <ul className={style.shapeList}>
                     {shapes.map((shape, index) => (
@@ -68,4 +68,4 @@ function LevelTwoDiscoveredShapes({ shapes }: LevelTwoDiscoveredShapesProps) {
     );
 }
 
-export default LevelTwoDiscoveredShapes;
+export default DiscoveredShapesClassification;
