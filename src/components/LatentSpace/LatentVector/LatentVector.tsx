@@ -1,6 +1,7 @@
 import * as React from "react"
 import type { SVGProps } from "react"
 import { motion, type Variants } from "framer-motion";
+import style from "./LatentVector.module.css";
 
 // Define the timeline stages so your TypeScript knows exactly what states are allowed
 export type VAEStage = "resting" | "inputting" | "compressing" | "thinking" | "reconstructing";
@@ -135,6 +136,7 @@ const SvgComponent = ({ stage, latentValues, onValueChange, readOnly = false, ..
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
+      className={`${style.latentVector} ${props.className ?? ""}`.trim()}
       aria-disabled={readOnly || undefined}
       style={{ ...props.style, pointerEvents: readOnly ? 'none' : props.style?.pointerEvents }}
     >
