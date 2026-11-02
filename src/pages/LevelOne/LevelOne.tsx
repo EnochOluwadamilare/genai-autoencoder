@@ -13,6 +13,7 @@ import { useRef, useState } from 'react';
 import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { useVaeInferenceAlpha, type ClarityMetrics } from '../../hooks/useVaeInference';
+import { useProgressStore } from '../../stores/progressStore';
 
 function LevelOne() {
     const { t } = useTranslation('image_adv');
@@ -27,12 +28,15 @@ function LevelOne() {
     const [starBiasAlpha] = useState<number>(0.4);
 
     // Grid data states for input and reconstructed output
-    const [inputGridData, setInputGridData] = useState<number[][] | null>(null);
-    const [outputGridData, setOutputGridData] = useState<number[][] | null>(null);
+    const inputGridData = useProgressStore((state) => state.levelOne.inputGrid);
+    const outputGridData = useProgressStore((state) => state.levelOne.outputGrid);
+    const setInputGridData = useProgressStore((state) => state.setLevelOneInputGrid);
+    const setOutputGridData = useProgressStore((state) => state.setLevelOneOutputGrid);
+    const clearLevelOneImages = useProgressStore((state) => state.clearLevelOneImages);
 
     const clarityPercentage = metrics?.clarityPercentage ?? 0;
     const progressPercentage = metrics?.progressPercentage ?? 0;
-    const canSubmit = clarityPercentage >= 75 && progressPercentage >= 75;
+    const canSubmit = clarityPercentage >= 59 && progressPercentage >= 59;
 
     // Initialize ONNX inference hook
     const { runInferenceWithBias, isLoaded } = useVaeInferenceAlpha();
@@ -54,8 +58,7 @@ function LevelOne() {
         }
 
         setCurrentStage('resting');
-        setInputGridData(null);
-        setOutputGridData(null);
+        clearLevelOneImages();
         setMetrics(null);
         setCanvasKey((prev) => prev + 1);
     };
@@ -76,6 +79,12 @@ function LevelOne() {
         debounceTimerRef.current = setTimeout(() => {
             runAnimationOrchestration(gridMatrix || inputGridData);
         }, 1000);
+    };
+
+    const handleSampleSelect = (gridMatrix: number[][]) => {
+        setInputGridData(gridMatrix);
+        setCanvasKey((prev) => prev + 1);
+        handleInputCanvasEdit(gridMatrix);
     };
 
     // Orchestrates LatentSpaceSVG timeline and executes browser VAE model
@@ -140,7 +149,7 @@ function LevelOne() {
                         rows={32} 
                         cols={32} 
                         cellSize={12} 
-                        grid={inputGridData} // This is commented because it makes the drawing process blinky and sluggish/sloopy. It needs fxing to be more responsive.
+                        initialGrid={inputGridData ?? undefined}
                     />
                 </div>
 
@@ -162,7 +171,7 @@ function LevelOne() {
                 </div>
             </section>
 
-            <SampleImages onSelect={handleInputCanvasEdit} />
+            <SampleImages onSelect={handleSampleSelect} />
 
             {/* ACTION BUTTONS */}
             <section className={style.bottomActions}>

@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import style from './style.module.css';
+import { useProgressStore } from '../../stores/progressStore';
 
 const categories = ['Numbers', 'Alphabets', 'animals', 'cars', 'shapes', 'stickman'];
 const shapes = [
@@ -14,13 +14,13 @@ const shapes = [
 const correctStarAnswers = new Set(['5 point stars', '5 point black star']);
 
 function LevelOneQuestionnaire() {
-    const [category, setCategory] = useState('');
-    const [shape, setShape] = useState('');
+    const category = useProgressStore((state) => state.levelOne.questionnaire.category);
+    const shape = useProgressStore((state) => state.levelOne.questionnaire.shape);
+    const setQuestionnaire = useProgressStore((state) => state.setLevelOneQuestionnaire);
     const isCorrect = category === 'shapes' && correctStarAnswers.has(shape);
 
     const handleCategoryChange = (value: string) => {
-        setCategory(value);
-        setShape('');
+        setQuestionnaire({ category: value, shape: '' });
     };
 
     return (
@@ -49,7 +49,7 @@ function LevelOneQuestionnaire() {
                             <span>2. What specific shape is it good at?</span>
                             <select
                                 value={shape}
-                                onChange={(event) => setShape(event.target.value)}
+                                onChange={(event) => setQuestionnaire({ shape: event.target.value })}
                                 disabled={isCorrect}
                             >
                                 <option value="">Choose an answer</option>

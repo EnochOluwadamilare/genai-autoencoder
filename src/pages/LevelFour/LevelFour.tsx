@@ -13,10 +13,13 @@ import { ClarityDisplay } from '../../components/ClarityDisplay/ClarityDisplay';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { LatentSpaceSVGWC } from '../../components/LatentSpace/LatentSpaceSVGWC';
 import type { ClarityMetrics } from '../../hooks/useVaeInference';
+import DiscoveredImages from '../../components/DiscoveredImages/DiscoveredImages';
+import { useProgressStore } from '../../stores/progressStore';
 
 function LevelFour() {
     const { t } = useTranslation('image_adv');
     const navigate = useNavigate();
+    const savedShapes = useProgressStore((state) => state.levelTwo.savedShapes);
     const [aiClarityScore, setAiClarityScore] = useState<number>(3.4);
     const [progressScore, setProgressScore] = useState<number>(40.4);
     const [currentStage, setCurrentStage] = useState<VAEStage>("resting");
@@ -115,6 +118,16 @@ function LevelFour() {
                 <h3>Output</h3>
                 <PixelCanvas rows={32} cols={32} cellSize={12} readOnly />
             </div>
+        </section>
+
+        <section className={style.panelColumn}>
+            <h3>Shapes Discovered in Level 2</h3>
+            <DiscoveredImages
+                images={savedShapes.map((shape) => ({
+                    name: shape.name,
+                    grid: shape.outputGrid,
+                }))}
+            />
         </section>
 
         {/* ACTION BUTTONS */}

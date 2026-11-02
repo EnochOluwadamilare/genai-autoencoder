@@ -18,12 +18,7 @@ import {
     LEVEL_TWO_SHAPE_PRESETS,
     useLevelTwoVaeInference,
 } from './useVaeInference';
-
-type SavedShape = {
-    name: string;
-    vector: number[];
-    outputGrid: number[][];
-};
+import { useProgressStore } from '../../stores/progressStore';
 
 function LevelTwo() {
     const { t } = useTranslation('image_adv');
@@ -35,8 +30,10 @@ function LevelTwo() {
     const [showHint, setShowHint] = useState(false);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [shapeName, setShapeName] = useState('');
-    const [savedShapes, setSavedShapes] = useState<SavedShape[]>([]);
-    const [discoveredShapeIds, setDiscoveredShapeIds] = useState<string[]>([]);
+    const savedShapes = useProgressStore((state) => state.levelTwo.savedShapes);
+    const discoveredShapeIds = useProgressStore((state) => state.levelTwo.discoveredShapeIds);
+    const discoverShape = useProgressStore((state) => state.discoverLevelTwoShape);
+    const saveShape = useProgressStore((state) => state.saveLevelTwoShape);
     const { runLevelTwoInference, isLoaded } = useLevelTwoVaeInference();
 
     const targetShape = useMemo(() => getNearestShapePreset(latentVector), [latentVector]);
@@ -69,37 +66,23 @@ function LevelTwo() {
             return;
         }
 
-        setSavedShapes((currentShapes) => [
-            ...currentShapes,
-            {
+        saveShape({
+                id: targetShape.id,
                 name: shapeName.trim(),
                 vector: [...latentVector],
                 outputGrid: outputGridData.map((row) => [...row]),
-            },
-        ]);
+            });
 
-        if (discoveredShapeIds.includes(targetShape.id)) {
-            setShowSaveDialog(false);
-            setShapeName('');
-            return;
-        }
-
-        setDiscoveredShapeIds((currentShapes) => [...currentShapes, targetShape.id]);
+        discoverShape(targetShape.id);
         setShowSaveDialog(false);
         setShapeName('');
     };
 
     useEffect(() => {
         if (progressScore >= 70 && !discoveredShapeIds.includes(targetShape.id)) {
-            setDiscoveredShapeIds((currentShapes) => {
-                if (currentShapes.includes(targetShape.id)) {
-                    return currentShapes;
-                }
-
-                return [...currentShapes, targetShape.id];
-            });
+            discoverShape(targetShape.id);
         }
-    }, [discoveredShapeIds, progressScore, targetShape.id]);
+    }, [discoverShape, discoveredShapeIds, progressScore, targetShape.id]);
     
     const handleReset = () => {
         setCurrentStage("resting");
